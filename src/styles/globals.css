@@ -1,0 +1,237 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply ak-border-border;
+  }
+  body {
+    @apply ak-bg-background ak-text-foreground;
+  }
+}
+
+/* Point-Hive 自定义样式 */
+@layer utilities {
+  /* 渐变背景 */
+  .ak-gradient-primary {
+    @apply ak-bg-gradient-to-r ak-from-ak-primary-500 ak-to-ak-primary-600;
+  }
+  
+  .ak-gradient-success {
+    @apply ak-bg-gradient-to-r ak-from-green-400 ak-to-green-500;
+  }
+  
+  .ak-gradient-warning {
+    @apply ak-bg-gradient-to-r ak-from-yellow-400 ak-to-orange-400;
+  }
+  
+  .ak-gradient-error {
+    @apply ak-bg-gradient-to-r ak-from-red-400 ak-to-red-500;
+  }
+
+  /* 积分状态背景 */
+  .ak-points-abundant {
+    @apply ak-bg-ak-points-abundant ak-text-white;
+  }
+  
+  .ak-points-normal {
+    @apply ak-bg-ak-points-normal ak-text-white;
+  }
+  
+  .ak-points-low {
+    @apply ak-bg-ak-points-low ak-text-white;
+  }
+  
+  .ak-points-critical {
+    @apply ak-bg-ak-points-critical ak-text-white;
+  }
+
+  /* 信用等级样式 */
+  .ak-credit-diamond {
+    @apply ak-bg-ak-credit-diamond ak-text-white;
+  }
+  
+  .ak-credit-gold {
+    @apply ak-bg-ak-credit-gold ak-text-gray-900;
+  }
+  
+  .ak-credit-silver {
+    @apply ak-bg-ak-credit-silver ak-text-white;
+  }
+  
+  .ak-credit-bronze {
+    @apply ak-bg-ak-credit-bronze ak-text-white;
+  }
+  
+  .ak-credit-newbie {
+    @apply ak-bg-ak-credit-newbie ak-text-white;
+  }
+  
+  .ak-credit-risk {
+    @apply ak-bg-ak-credit-risk ak-text-white;
+  }
+
+  /* 卡片悬浮效果 */
+  .ak-card-hover {
+    @apply ak-transition-all ak-duration-200 ak-ease-in-out hover:ak-shadow-lg hover:ak--translate-y-1;
+  }
+
+  /* 按钮点击效果 */
+  .ak-button-press {
+    @apply active:ak-scale-95 ak-transition-transform ak-duration-100;
+  }
+
+  /* 加载骨架屏 */
+  .ak-skeleton {
+    @apply ak-animate-pulse ak-bg-gray-300 ak-rounded;
+  }
+
+  /* 模糊背景 */
+  .ak-backdrop-blur {
+    backdrop-filter: blur(8px);
+    @apply ak-bg-white/80;
+  }
+
+  .dark .ak-backdrop-blur {
+    @apply ak-bg-gray-900/80;
+  }
+
+  /* 滚动条样式 */
+  .ak-scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .ak-scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 文本渐变 */
+  .ak-text-gradient {
+    @apply ak-bg-gradient-to-r ak-from-ak-primary-500 ak-to-purple-600 ak-bg-clip-text ak-text-transparent;
+  }
+}
+
+/* 自定义组件样式 */
+@layer components {
+  /* 主要按钮 */
+  .ak-btn-primary {
+    @apply ak-inline-flex ak-items-center ak-justify-center ak-rounded-md ak-text-sm ak-font-medium ak-transition-colors focus-visible:ak-outline-none focus-visible:ak-ring-2 focus-visible:ak-ring-blue-500 focus-visible:ak-ring-offset-2 disabled:ak-pointer-events-none disabled:ak-opacity-50 ak-bg-ak-primary-500 ak-text-white hover:ak-bg-ak-primary-600 ak-h-10 ak-px-4 ak-py-2;
+  }
+
+  /* 次要按钮 */
+  .ak-btn-secondary {
+    @apply ak-inline-flex ak-items-center ak-justify-center ak-rounded-md ak-text-sm ak-font-medium ak-transition-colors focus-visible:ak-outline-none focus-visible:ak-ring-2 focus-visible:ak-ring-blue-500 focus-visible:ak-ring-offset-2 disabled:ak-pointer-events-none disabled:ak-opacity-50 ak-bg-gray-100 ak-text-gray-900 hover:ak-bg-gray-200 ak-h-10 ak-px-4 ak-py-2;
+  }
+
+  /* 输入框 */
+  .ak-input {
+    @apply ak-flex ak-h-10 ak-w-full ak-rounded-md ak-border ak-border-gray-300 ak-bg-white ak-px-3 ak-py-2 ak-text-sm file:ak-border-0 file:ak-bg-transparent file:ak-text-sm file:ak-font-medium placeholder:ak-text-gray-500 focus-visible:ak-outline-none focus-visible:ak-ring-2 focus-visible:ak-ring-blue-500 focus-visible:ak-ring-offset-2 disabled:ak-cursor-not-allowed disabled:ak-opacity-50;
+  }
+
+  /* 卡片 */
+  .ak-card {
+    @apply ak-rounded-lg ak-border ak-border-gray-200 ak-bg-white ak-text-gray-900 ak-shadow-sm;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* 响应式字体 */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .ak-no-print {
+    display: none !important;
+  }
+}
