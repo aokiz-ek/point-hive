@@ -24,7 +24,14 @@ export class LocalStorage {
 
   // 群组相关
   static getGroups(): Group[] {
-    return this.getItem<Group[]>('point-hive-groups') || [];
+    const groups = this.getItem<Group[]>('point-hive-groups') || [];
+    // Ensure all groups have proper array defaults
+    return groups.map(group => ({
+      ...group,
+      adminIds: group.adminIds || [],
+      memberIds: group.memberIds || [],
+      tags: group.tags || []
+    }));
   }
 
   static setGroups(groups: Group[]): void {
@@ -33,7 +40,14 @@ export class LocalStorage {
 
   static addGroup(group: Group): void {
     const groups = this.getGroups();
-    groups.push(group);
+    // Ensure all array properties have defaults
+    const safeGroup = {
+      ...group,
+      adminIds: group.adminIds || [],
+      memberIds: group.memberIds || [],
+      tags: group.tags || []
+    };
+    groups.push(safeGroup);
     this.setGroups(groups);
   }
 

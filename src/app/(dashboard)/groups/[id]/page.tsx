@@ -256,15 +256,15 @@ export default function GroupDetailPage() {
             <div className="ak-space-y-3">
               <div className="ak-flex ak-justify-between ak-text-sm">
                 <span className="ak-text-gray-600">最大转移金额</span>
-                <span className="ak-font-medium">{group.rules.maxTransferAmount.toLocaleString()} 积分</span>
+                <span className="ak-font-medium">{(group.rules?.maxTransferAmount || 0).toLocaleString()} 积分</span>
               </div>
               <div className="ak-flex ak-justify-between ak-text-sm">
                 <span className="ak-text-gray-600">默认归还期限</span>
-                <span className="ak-font-medium">{group.rules.defaultReturnPeriod} 天</span>
+                <span className="ak-font-medium">{group.rules?.defaultReturnPeriod || 7} 天</span>
               </div>
               <div className="ak-flex ak-justify-between ak-text-sm">
                 <span className="ak-text-gray-600">信用要求</span>
-                <span className="ak-font-medium">{group.rules.creditRequirement}+ 分</span>
+                <span className="ak-font-medium">{group.rules?.creditScoreThreshold || 600}+ 分</span>
               </div>
             </div>
           </Card>

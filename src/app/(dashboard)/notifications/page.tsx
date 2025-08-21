@@ -130,7 +130,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications?.filter(n => !n.read).length || 0;
 
   if (loading) {
     return (

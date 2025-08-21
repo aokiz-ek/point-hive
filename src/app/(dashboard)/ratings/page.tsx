@@ -33,8 +33,7 @@ export default function RatingsPage() {
       const userTransactions = allTransactions.filter(t => 
         (t.fromUserId === user.id || t.toUserId === user.id) &&
         t.status === 'completed' &&
-        t.type === 'transfer' &&
-        !t.metadata?.isReturn
+        t.type === 'transfer'
       );
 
       // 获取待评价的交易
@@ -83,11 +82,12 @@ export default function RatingsPage() {
       // 发送通知给对方
       const notification = {
         id: generateId(),
-        type: 'rating_received' as const,
+        type: 'system_message' as const,
         title: '收到新评价',
-        message: `${user.nickname || user.name} 给您评价了 ${score} 星`,
+        message: `${user.nickname} 给您评价了 ${score} 星`,
         userId: rating.toUserId,
         read: false,
+        isRead: false,
         createdAt: new Date().toISOString(),
         metadata: {
           ratingId: rating.id,
@@ -115,7 +115,10 @@ export default function RatingsPage() {
   const getScoreDistribution = (ratingsList: Rating[]) => {
     const distribution = [0, 0, 0, 0, 0];
     ratingsList.forEach(r => {
-      distribution[r.score - 1]++;
+      const index = r.score - 1;
+      if (index >= 0 && index < 5) {
+        distribution[index]++;
+      }
     });
     return distribution;
   };

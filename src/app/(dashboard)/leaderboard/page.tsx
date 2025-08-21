@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/hooks';
-import { LocalStorage } from '@/lib/utils/local-storage';
+import { useAuth, useTransactions, useGroups } from '@/lib/hooks';
+import { groupService } from '@/lib/services/group-service';
 import type { Group, Transaction } from '@/lib/types';
 
 interface LeaderboardEntry {
@@ -25,7 +25,9 @@ interface LeaderboardData {
 
 export default function LeaderboardPage() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { transactions, loading: isLoadingTransactions } = useTransactions();
+  const { groups, loading: isLoadingGroups } = useGroups();
+  
   const [leaderboard, setLeaderboard] = useState<LeaderboardData>({
     points: [],
     credit: [],
@@ -35,19 +37,22 @@ export default function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState<'points' | 'credit' | 'activity' | 'generosity'>('points');
   const [timeRange, setTimeRange] = useState<'weekly' | 'monthly' | 'all_time'>('monthly');
 
+  const loading = isLoadingTransactions || isLoadingGroups;
+
   useEffect(() => {
-    loadLeaderboardData();
-  }, [timeRange]);
+    if (!loading && transactions && groups) {
+      loadLeaderboardData();
+    }
+  }, [timeRange, transactions, groups, loading]);
 
   const loadLeaderboardData = () => {
-    setLoading(true);
+    if (!transactions || !groups) return;
+    
     try {
-      const transactions = LocalStorage.getTransactions();
-      const groups = LocalStorage.getGroups();
       const allUsers = new Set<string>();
 
       // 收集所有用户ID
-      transactions.forEach(t => {
+      transactions.forEach((t: any) => {
         allUsers.add(t.fromUserId);
         allUsers.add(t.toUserId);
       });
@@ -59,12 +64,12 @@ export default function LeaderboardPage() {
       const generosityData: LeaderboardEntry[] = [];
 
       Array.from(allUsers).forEach(userId => {
-        const userTransactions = transactions.filter(t => 
+        const userTransactions = transactions.filter((t: any) => 
           t.fromUserId === userId || t.toUserId === userId
         );
 
         // 积分排行榜 - 当前余额
-        const currentBalance = userTransactions.reduce((balance, t) => {
+        const currentBalance = userTransactions.reduce((balance: number, t: any) => {
           if (t.toUserId === userId) balance += t.amount;
           if (t.fromUserId === userId) balance -= t.amount;
           return balance;
@@ -79,8 +84,12 @@ export default function LeaderboardPage() {
           });
         }
 
-        // 信用排行榜 - 模拟信用分数
-        const creditScore = 600 + Math.floor(Math.random() * 400); // 600-1000
+        // 信用排行榜 - 基于交易行为计算信用分数
+        const completedTransactions = userTransactions.filter((t: any) => t.status === 'completed').length;
+        const totalTransactions = userTransactions.length;
+        const successRate = totalTransactions > 0 ? completedTransactions / totalTransactions : 0;
+        const baseScore = userId === user?.id ? (user.creditScore || 600) : 600;
+        const creditScore = Math.max(500, Math.min(1000, baseScore + (successRate * 200) + (completedTransactions * 10)));
         creditData.push({
           rank: 0,
           userId,
@@ -101,8 +110,8 @@ export default function LeaderboardPage() {
 
         // 慷慨度排行榜 - 转出积分总数
         const totalGiven = userTransactions
-          .filter(t => t.fromUserId === userId && t.type === 'transfer')
-          .reduce((sum, t) => sum + t.amount, 0);
+          .filter((t: any) => t.fromUserId === userId && t.type === 'transfer')
+          .reduce((sum: number, t: any) => sum + t.amount, 0);
 
         if (totalGiven > 0) {
           generosityData.push({
@@ -134,8 +143,6 @@ export default function LeaderboardPage() {
 
     } catch (error) {
       console.error('加载排行榜数据失败:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

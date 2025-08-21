@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Wallet,
   RotateCcw,
+  Gamepad2,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -58,6 +59,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: ArrowLeftRight,
       current: pathname.startsWith('/transfer'),
       badge: null,
+    },
+    {
+      name: '多人游戏',
+      href: '/gaming',
+      icon: Gamepad2,
+      current: pathname.startsWith('/gaming'),
+      badge: 'NEW',
     },
     {
       name: '余额中心',

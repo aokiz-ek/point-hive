@@ -65,7 +65,7 @@ export default function BalancePage() {
       sortedTransactions.forEach(transaction => {
         let amount = 0;
         let type: BalanceDetail['type'] = 'system';
-        let description = transaction.description;
+        let description = transaction.description || '无描述';
 
         if (transaction.toUserId === user.id) {
           // 收入
@@ -148,7 +148,7 @@ export default function BalancePage() {
     .filter(detail => {
       const matchesFilter = filter === 'all' || detail.type === filter;
       const matchesSearch = searchTerm === '' || 
-        detail.description.toLowerCase().includes(searchTerm.toLowerCase());
+        detail.description?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesFilter && matchesSearch;
     })
     .filter(detail => filterByTimeRange([detail]).length > 0);

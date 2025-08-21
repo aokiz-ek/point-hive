@@ -11,70 +11,24 @@ export default function TransactionsPage() {
   const [status, setStatus] = useState<'all' | 'pending' | 'completed' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   
-  // 使用模拟数据代替hooks，因为数据可能未定义
-  const mockTransactions = [
-    {
-      id: 'tx-001',
-      type: 'transfer',
-      fromUserId: '1',
-      toUserId: '2',
-      amount: 500,
-      status: 'pending',
-      description: '项目协作资金支持',
-      createdAt: new Date().toISOString(),
-      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      groupId: 'group-1',
-      metadata: { tags: ['紧急', '项目'] }
-    },
-    {
-      id: 'tx-002',
-      type: 'transfer',
-      fromUserId: '2',
-      toUserId: '1',
-      amount: 800,
-      status: 'completed',
-      description: '学习资料购买',
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      returnedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      groupId: 'group-2'
-    },
-    {
-      id: 'tx-003',
-      type: 'return',
-      fromUserId: '1',
-      toUserId: '3',
-      amount: 300,
-      status: 'completed',
-      description: '归还积分 - 早期支持',
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      returnedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'tx-004',
-      type: 'transfer',
-      fromUserId: '1',
-      toUserId: '4',
-      amount: 1200,
-      status: 'rejected',
-      description: '设备购买资金申请',
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      metadata: { rejectionReason: '信用额度不足' }
-    }
-  ];
+  // 使用真实的 API 数据
+  const { data: transactionsData, isLoading: isLoadingTransactions, error: transactionsError } = useTransactions();
+  const { data: summaryData, isLoading: isLoadingSummary, error: summaryError } = useTransactionSummary();
   
-  const mockSummary = {
-    currentBalance: 3000,
-    totalTransferred: 2500,
-    totalReceived: 1800,
-    pendingOut: 500,
+  const transactions = transactionsData || [];
+  const summary = summaryData || {
+    currentBalance: 0,
+    totalTransferred: 0,
+    totalReceived: 0,
+    pendingOut: 0,
     pendingIn: 0
   };
   
-  const loading = false;
-  const error = null;
+  const loading = isLoadingTransactions || isLoadingSummary;
+  const error = transactionsError || summaryError;
 
-  const filteredTransactions = mockTransactions.filter(transaction => {
-    const matchesSearch = searchTerm === '' || transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredTransactions = transactions.filter(transaction => {
+    const matchesSearch = searchTerm === '' || transaction.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filter === 'all' || transaction.type === filter;
     const matchesStatus = status === 'all' || transaction.status === status;
     
@@ -146,13 +100,13 @@ export default function TransactionsPage() {
       </div>
 
       {/* 交易汇总 */}
-      {mockSummary && (
+      {summary && (
         <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-4 ak-gap-6">
           <Card className="ak-p-4 ak-bg-green-50">
             <div className="ak-text-center">
               <p className="ak-text-sm ak-text-gray-600">当前余额</p>
               <p className="ak-text-2xl ak-font-bold ak-text-green-600">
-                {mockSummary.currentBalance.toLocaleString()}
+                {summary.currentBalance.toLocaleString()}
               </p>
             </div>
           </Card>
@@ -160,7 +114,7 @@ export default function TransactionsPage() {
             <div className="ak-text-center">
               <p className="ak-text-sm ak-text-gray-600">总转出</p>
               <p className="ak-text-2xl ak-font-bold ak-text-blue-600">
-                {mockSummary.totalTransferred.toLocaleString()}
+                {summary.totalTransferred.toLocaleString()}
               </p>
             </div>
           </Card>
@@ -168,7 +122,7 @@ export default function TransactionsPage() {
             <div className="ak-text-center">
               <p className="ak-text-sm ak-text-gray-600">总收入</p>
               <p className="ak-text-2xl ak-font-bold ak-text-purple-600">
-                {mockSummary.totalReceived.toLocaleString()}
+                {summary.totalReceived.toLocaleString()}
               </p>
             </div>
           </Card>
@@ -176,7 +130,7 @@ export default function TransactionsPage() {
             <div className="ak-text-center">
               <p className="ak-text-sm ak-text-gray-600">待处理</p>
               <p className="ak-text-2xl ak-font-bold ak-text-orange-600">
-                {mockSummary.pendingOut.toLocaleString()}
+                {summary.pendingOut.toLocaleString()}
               </p>
             </div>
           </Card>

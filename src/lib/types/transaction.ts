@@ -47,6 +47,7 @@ export interface TransactionMetadata {
   batchId?: string; // 批量操作ID
   tags?: string[];
   priority?: 'low' | 'normal' | 'high' | 'urgent';
+  transferType?: 'win' | 'loan'; // 用于扑克游戏：区分赢得筹码和借出筹码
 }
 
 export interface PendingRequest {

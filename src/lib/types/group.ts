@@ -22,6 +22,12 @@ export interface Group {
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
+  // Additional computed properties
+  currentMembers?: number;
+  isActive?: boolean;
+  userRole?: UserRole;
+  pointsBalance?: number;
+  requireApproval?: boolean;
 }
 
 export interface GroupRules {
@@ -46,6 +52,7 @@ export interface GroupSettings {
   requireVerifiedPhone: boolean;
   enableCreditLimit: boolean;
   enableTimeLimit: boolean;
+  pointsPerMember?: number;
 }
 
 export type GroupStatus = 'active' | 'inactive' | 'suspended' | 'archived';
@@ -126,6 +133,7 @@ export interface CreateGroupData {
   rules: Partial<GroupRules>;
   isPublic?: boolean;
   tags?: string[];
+  type?: 'enterprise' | 'community' | 'activity' | 'custom';
 }
 
 export interface UpdateGroupData {

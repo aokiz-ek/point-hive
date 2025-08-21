@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { CreditScore, PointsDisplay } from '@/components/ui';
 import { useAuth, useGroups, useTransactionMutations } from '@/lib/hooks';
+import { groupService } from '@/lib/services/group-service';
+import { useQuery } from '@tanstack/react-query';
 
 interface Member {
   id: string;
@@ -31,55 +33,38 @@ export default function TransferPage() {
   const { groups } = useGroups();
   const { createTransferMutation } = useTransactionMutations();
 
-  // 模拟群组成员数据
-  const mockMembers: Member[] = [
-    {
-      id: '2',
-      name: '张三',
-      balance: 5000,
-      creditScore: 920,
-      cooperationCount: 15,
-      lastOnline: '2分钟前',
-      isOnline: true,
-      successRate: 95
+  // 获取用户所在群组的成员数据
+  const activeGroup = groups?.[0]; // 使用用户的第一个活跃群组
+  
+  const { data: groupMembersResponse, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ['group-members', activeGroup?.id],
+    queryFn: async () => {
+      if (!activeGroup?.id) return { success: false, data: [] };
+      return await groupService.getGroupMembers(activeGroup.id);
     },
-    {
-      id: '3',
-      name: '李四',
-      balance: 1200,
-      creditScore: 780,
-      cooperationCount: 8,
-      lastOnline: '10分钟前',
-      isOnline: true,
-      successRate: 88
-    },
-    {
-      id: '4',
-      name: '王五',
-      balance: 3500,
-      creditScore: 850,
-      cooperationCount: 22,
-      lastOnline: '1小时前',
-      isOnline: false,
-      successRate: 92
-    },
-    {
-      id: '5',
-      name: '赵六',
-      balance: 800,
-      creditScore: 650,
-      cooperationCount: 3,
-      lastOnline: '昨天',
-      isOnline: false,
-      successRate: 75
-    }
-  ];
+    enabled: !!activeGroup?.id
+  });
+
+  // 转换群组成员数据为转移界面所需格式
+  const members: Member[] = groupMembersResponse?.success && Array.isArray(groupMembersResponse.data) 
+    ? groupMembersResponse.data.map((member: any) => ({
+        id: member.userId,
+        name: member.user.fullName || member.user.username,
+        balance: member.user.balance || 0,
+        creditScore: member.user.creditScore || 600,
+        cooperationCount: Math.floor(Math.random() * 20) + 5, // 暂时使用随机数，后续从交易历史计算
+        lastOnline: member.user.isOnline ? '在线' : '1小时前',
+        isOnline: member.user.isOnline || false,
+        successRate: Math.floor(Math.random() * 20) + 80 // 暂时使用随机数，后续从交易历史计算
+      }))
+      .filter((member: Member) => member.id !== user?.id) // 排除当前用户
+    : [];
 
   // 智能推荐算法
   const getRecommendedMembers = () => {
     const transferAmountNum = parseFloat(transferAmount) || 300;
     
-    return mockMembers
+    return members
       .filter(member => member.balance >= transferAmountNum * 2) // 余额充足度筛选
       .map(member => {
         // 计算推荐分数 (余额40% + 信用30% + 合作20% + 在线10%)
@@ -105,15 +90,15 @@ export default function TransferPage() {
   };
 
   const filteredMembers = getRecommendedMembers().filter(member =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase())
+    member.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmitTransfer = async () => {
-    if (!selectedMember) return;
+    if (!selectedMember || !activeGroup) return;
 
     try {
       await createTransferMutation.mutateAsync({
-        groupId: 'group-1', // 假设当前群组ID
+        groupId: activeGroup.id, // 使用实际的群组ID
         toUserId: selectedMember.id,
         amount: parseFloat(transferAmount),
         description: description || '积分转移',
@@ -134,7 +119,7 @@ export default function TransferPage() {
           <h1 className="ak-text-2xl ak-font-bold ak-text-gray-900">发起积分转移</h1>
           <div className="ak-text-right">
             <div className="ak-text-sm ak-text-gray-600">我的余额</div>
-            <PointsDisplay balance={3000} size="lg" />
+            <PointsDisplay balance={user?.balance || 0} size="lg" />
           </div>
         </div>
 
@@ -155,7 +140,35 @@ export default function TransferPage() {
         <Card className="ak-p-6">
           <h2 className="ak-text-lg ak-font-semibold ak-mb-4">智能推荐 (按匹配度排序)</h2>
           <div className="ak-space-y-3">
-            {filteredMembers.map((member) => (
+            {/* 加载状态 */}
+            {isLoadingMembers && (
+              <div className="ak-text-center ak-py-8">
+                <div className="ak-animate-spin ak-h-8 ak-w-8 ak-border-2 ak-border-blue-600 ak-border-t-transparent ak-rounded-full ak-mx-auto ak-mb-2"></div>
+                <p className="ak-text-gray-600">正在加载群组成员...</p>
+              </div>
+            )}
+            
+            {/* 无群组状态 */}
+            {!isLoadingMembers && !activeGroup && (
+              <div className="ak-text-center ak-py-8 ak-text-gray-500">
+                <p>您还没有加入任何群组</p>
+                <p className="ak-text-sm ak-mt-2">请先创建或加入群组再进行积分转移</p>
+                <Button className="ak-mt-4" asChild>
+                  <a href="/hall">前往积分大厅</a>
+                </Button>
+              </div>
+            )}
+            
+            {/* 无成员状态 */}
+            {!isLoadingMembers && activeGroup && filteredMembers.length === 0 && (
+              <div className="ak-text-center ak-py-8 ak-text-gray-500">
+                <p>群组中暂无其他成员</p>
+                <p className="ak-text-sm ak-mt-2">邀请更多朋友加入群组吧</p>
+              </div>
+            )}
+            
+            {/* 成员列表 */}
+            {!isLoadingMembers && filteredMembers.map((member) => (
               <div
                 key={member.id}
                 className="ak-flex ak-items-center ak-justify-between ak-p-4 ak-border ak-rounded-lg ak-hover:shadow-md ak-transition-shadow ak-cursor-pointer"
@@ -255,7 +268,7 @@ export default function TransferPage() {
             {/* 当前余额显示 */}
             <div className="ak-text-center ak-p-4 ak-bg-gray-50 ak-rounded-lg">
               <div className="ak-text-sm ak-text-gray-600 ak-mb-1">当前余额</div>
-              <PointsDisplay balance={3000} size="lg" />
+              <PointsDisplay balance={user?.balance || 0} size="lg" />
             </div>
 
             {/* 转移金额输入 */}
@@ -320,7 +333,7 @@ export default function TransferPage() {
               <div className="ak-p-4 ak-bg-yellow-50 ak-rounded-lg ak-border ak-border-yellow-200">
                 <div className="ak-text-sm ak-text-yellow-800">
                   转移后余额: <span className="ak-font-bold">
-                    {(3000 - parseFloat(transferAmount || '0')).toLocaleString()} 积分
+                    {((user?.balance || 0) - parseFloat(transferAmount || '0')).toLocaleString()} 积分
                   </span>
                 </div>
               </div>
@@ -392,7 +405,7 @@ export default function TransferPage() {
               <div className="ak-flex ak-justify-between">
                 <span className="ak-text-gray-600">转移后余额</span>
                 <span className="ak-font-medium">
-                  {(3000 - parseFloat(transferAmount)).toLocaleString()} 积分
+                  {((user?.balance || 0) - parseFloat(transferAmount)).toLocaleString()} 积分
                 </span>
               </div>
             </div>

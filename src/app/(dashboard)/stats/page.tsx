@@ -261,7 +261,7 @@ export default function StatsPage() {
             <div>
               <h4 className="ak-font-medium ak-mb-3">交易次数趋势</h4>
               <div className="ak-space-y-2">
-                {statsData.monthlyData.map((data, index) => (
+                {statsData.monthlyData?.map((data, index) => (
                   <div key={index} className="ak-flex ak-items-center ak-justify-between">
                     <span className="ak-text-sm ak-text-gray-600">{data.month}</span>
                     <div className="ak-flex ak-items-center ak-space-x-2">
@@ -281,7 +281,7 @@ export default function StatsPage() {
             <div>
               <h4 className="ak-font-medium ak-mb-3">转移金额趋势</h4>
               <div className="ak-space-y-2">
-                {statsData.monthlyData.map((data, index) => (
+                {statsData.monthlyData?.map((data, index) => (
                   <div key={index} className="ak-flex ak-items-center ak-justify-between">
                     <span className="ak-text-sm ak-text-gray-600">{data.month}</span>
                     <div className="ak-flex ak-items-center ak-space-x-2">
@@ -291,7 +291,7 @@ export default function StatsPage() {
                           style={{ width: `${(data.amount / 12000) * 100}%` }}
                         ></div>
                       </div>
-                      <span className="ak-text-sm ak-font-medium ak-w-16">{data.amount.toLocaleString()}</span>
+                      <span className="ak-text-sm ak-font-medium ak-w-16">{(data.amount || 0).toLocaleString()}</span>
                     </div>
                   </div>
                 ))}
@@ -305,7 +305,7 @@ export default function StatsPage() {
         <Card className="ak-p-6">
           <h3 className="ak-text-lg ak-font-semibold ak-mb-4">群组分析</h3>
           <div className="ak-space-y-4">
-            {statsData.groupStats.map((group, index) => (
+            {statsData.groupStats?.map((group, index) => (
               <div key={index} className="ak-flex ak-items-center ak-justify-between ak-p-4 ak-border ak-rounded-lg">
                 <div className="ak-flex ak-items-center ak-space-x-3">
                   <div className="ak-w-8 ak-h-8 ak-bg-blue-100 ak-rounded-full ak-flex ak-items-center ak-justify-center">
@@ -318,7 +318,7 @@ export default function StatsPage() {
                 </div>
                 <div className="ak-text-right">
                   <div className="ak-font-medium ak-text-gray-900">
-                    {group.amount.toLocaleString()} 积分
+                    {(group.amount || 0).toLocaleString()} 积分
                   </div>
                   <div className="ak-text-sm ak-text-gray-600">
                     {Math.round((group.amount / statsData.totalAmount) * 100)}% 占比

@@ -54,7 +54,7 @@ export default function ManageGroupPage() {
       }
 
       // 检查权限
-      if (!foundGroup.adminIds.includes(user?.id || '') && foundGroup.ownerId !== user?.id) {
+      if (!foundGroup.adminIds?.includes(user?.id || '') && foundGroup.ownerId !== user?.id) {
         router.push(`/groups/${groupId}`);
         return;
       }
@@ -62,16 +62,16 @@ export default function ManageGroupPage() {
       setGroup(foundGroup);
       setEditForm({
         name: foundGroup.name,
-        description: foundGroup.description,
+        description: foundGroup.description || '',
         maxMembers: foundGroup.maxMembers,
-        isPublic: foundGroup.isPublic,
-        requireApproval: foundGroup.requireApproval,
-        tags: foundGroup.tags,
+        isPublic: foundGroup.isPublic || false,
+        requireApproval: foundGroup.rules?.requireApproval || false,
+        tags: foundGroup.tags || [],
         newTag: '',
-        settings: foundGroup.settings || {
-          allowInvites: true,
-          requireApprovalForTransfer: false,
-          autoApproveSmallAmounts: true,
+        settings: {
+          allowInvites: foundGroup.settings?.allowMemberInvite ?? true,
+          requireApprovalForTransfer: foundGroup.settings?.autoAcceptTransfers === false,
+          autoApproveSmallAmounts: foundGroup.settings?.autoAcceptTransfers ?? true,
           maxTransferAmount: 5000,
           pointsPerMember: 0
         }
@@ -100,9 +100,30 @@ export default function ManageGroupPage() {
         description: editForm.description,
         maxMembers: editForm.maxMembers,
         isPublic: editForm.isPublic,
-        requireApproval: editForm.requireApproval,
+        rules: {
+          ...group?.rules,
+          requireApproval: editForm.requireApproval,
+          maxTransferAmount: editForm.settings.maxTransferAmount,
+          maxPendingAmount: 10000,
+          defaultReturnPeriod: 7,
+          creditScoreThreshold: 600,
+          allowAnonymousTransfer: false,
+          autoReminderEnabled: true,
+          allowPartialReturn: true,
+          dailyTransferLimit: 50000,
+          memberJoinApproval: editForm.requireApproval
+        },
         tags: editForm.tags,
-        settings: editForm.settings,
+        settings: {
+          autoAcceptTransfers: editForm.settings.autoApproveSmallAmounts,
+          notificationSound: true,
+          showMemberActivity: true,
+          allowMemberInvite: editForm.settings.allowInvites,
+          requireVerifiedEmail: false,
+          requireVerifiedPhone: false,
+          enableCreditLimit: true,
+          enableTimeLimit: true
+        },
         updatedAt: new Date().toISOString()
       };
 
@@ -120,6 +141,7 @@ export default function ManageGroupPage() {
             message: `群组 "${updatedGroup.name}" 的信息已更新`,
             userId: memberId,
             read: false,
+            isRead: false,
             createdAt: new Date().toISOString(),
             metadata: {
               groupId: groupId
@@ -163,7 +185,14 @@ export default function ManageGroupPage() {
       if (requestIndex === -1) return;
 
       const request = requests[requestIndex];
-      requests[requestIndex] = { ...request, status: approved ? 'approved' : 'rejected' };
+      if (!request) return;
+      
+      requests[requestIndex] = { 
+        ...request, 
+        status: approved ? 'approved' : 'rejected',
+        processedAt: new Date().toISOString(),
+        processedBy: user?.id || ''
+      } as JoinRequest;
       LocalStorage.setItem('point-hive-join-requests', requests);
 
       if (approved) {
@@ -175,21 +204,23 @@ export default function ManageGroupPage() {
         };
         LocalStorage.updateGroup(groupId, updatedGroup);
 
-        // 发放积分
-        if (group.settings?.pointsPerMember && group.settings.pointsPerMember > 0) {
+        // 发放积分 (使用固定值或从editForm获取)
+        const welcomePoints = editForm.settings.pointsPerMember || 0;
+        if (welcomePoints > 0) {
           const pointsTransaction = {
             id: generateId(),
             type: 'system' as const,
             fromUserId: 'system',
             toUserId: request.userId,
-            amount: group.settings.pointsPerMember,
+            amount: welcomePoints,
             status: 'completed' as const,
             description: `加入群组 "${group.name}" 获得`,
             createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
             groupId: groupId,
             metadata: {
-              type: 'group_join_points',
-              groupName: group.name
+              tags: ['group_join', 'welcome_points'],
+              priority: 'normal' as const
             }
           };
           LocalStorage.addTransaction(pointsTransaction);
@@ -203,6 +234,7 @@ export default function ManageGroupPage() {
           message: `您加入群组 "${group.name}" 的申请已批准`,
           userId: request.userId,
           read: false,
+          isRead: false,
           createdAt: new Date().toISOString(),
           metadata: {
             groupId: groupId
@@ -219,6 +251,7 @@ export default function ManageGroupPage() {
             message: `${request.userName} 加入了群组 "${group.name}"`,
             userId: memberId,
             read: false,
+            isRead: false,
             createdAt: new Date().toISOString(),
             metadata: {
               groupId: groupId,
@@ -236,6 +269,7 @@ export default function ManageGroupPage() {
           message: `您加入群组 "${group.name}" 的申请被拒绝`,
           userId: request.userId,
           read: false,
+          isRead: false,
           createdAt: new Date().toISOString(),
           metadata: {
             groupId: groupId
@@ -274,6 +308,7 @@ export default function ManageGroupPage() {
           message: `您已被移出群组 "${group.name}"`,
           userId: memberId,
           read: false,
+          isRead: false,
           createdAt: new Date().toISOString(),
           metadata: {
             groupId: groupId
@@ -291,6 +326,7 @@ export default function ManageGroupPage() {
               message: `有成员被移出群组 "${group.name}"`,
               userId: id,
               read: false,
+          isRead: false,
               createdAt: new Date().toISOString(),
               metadata: {
                 groupId: groupId,
@@ -326,6 +362,7 @@ export default function ManageGroupPage() {
               message: `群组 "${group.name}" 已被删除`,
               userId: memberId,
               read: false,
+          isRead: false,
               createdAt: new Date().toISOString(),
               metadata: {
                 groupId: groupId
@@ -429,7 +466,7 @@ export default function ManageGroupPage() {
                     <div className="ak-font-medium ak-text-gray-900">用户 {memberId}</div>
                     <div className="ak-text-sm ak-text-gray-600">
                       {memberId === group.ownerId && '群主'}
-                      {group.adminIds.includes(memberId) && memberId !== group.ownerId && '管理员'}
+                      {group.adminIds?.includes(memberId) && memberId !== group.ownerId && '管理员'}
                     </div>
                   </div>
                 </div>
@@ -540,7 +577,7 @@ export default function ManageGroupPage() {
                       max={100000}
                     />
                   ) : (
-                    <p className="ak-text-gray-900">{group.settings?.pointsPerMember || 0}</p>
+                    <p className="ak-text-gray-900">{editForm.settings.pointsPerMember || 0}</p>
                   )}
                 </div>
               </div>
@@ -565,7 +602,7 @@ export default function ManageGroupPage() {
                 <label className="ak-flex ak-items-center ak-space-x-3">
                   <input
                     type="checkbox"
-                    checked={editMode ? editForm.requireApproval : group.requireApproval}
+                    checked={editMode ? editForm.requireApproval : group.rules?.requireApproval || false}
                     onChange={(e) => editMode && setEditForm(prev => ({ ...prev, requireApproval: e.target.checked }))}
                     disabled={!editMode}
                     className="ak-w-4 ak-h-4 ak-text-blue-600 ak-border-gray-300 ak-rounded ak-focus:ring-blue-500"
@@ -576,7 +613,7 @@ export default function ManageGroupPage() {
                 <label className="ak-flex ak-items-center ak-space-x-3">
                   <input
                     type="checkbox"
-                    checked={editMode ? editForm.settings.allowInvites : group.settings?.allowInvites}
+                    checked={editMode ? editForm.settings.allowInvites : group.settings?.allowMemberInvite || false}
                     onChange={(e) => editMode && setEditForm(prev => ({ 
                       ...prev, 
                       settings: { ...prev.settings, allowInvites: e.target.checked }
@@ -607,7 +644,7 @@ export default function ManageGroupPage() {
                     </Button>
                   </div>
                   <div className="ak-flex ak-flex-wrap ak-gap-2">
-                    {editForm.tags.map((tag) => (
+                    {editForm.tags?.map((tag) => (
                       <span
                         key={tag}
                         className="ak-inline-flex ak-items-center ak-px-3 ak-py-1 ak-rounded-full ak-text-sm ak-bg-blue-100 ak-text-blue-800"
@@ -626,7 +663,7 @@ export default function ManageGroupPage() {
                 </div>
               ) : (
                 <div className="ak-flex ak-flex-wrap ak-gap-2">
-                  {group.tags.map((tag) => (
+                  {group.tags?.map((tag) => (
                     <span
                       key={tag}
                       className="ak-bg-gray-100 ak-text-gray-700 ak-text-xs ak-px-2 ak-py-1 ak-rounded"

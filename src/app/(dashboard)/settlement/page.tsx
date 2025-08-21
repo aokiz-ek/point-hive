@@ -295,7 +295,7 @@ export default function SettlementPage() {
                   {group.name}
                 </div>
                 <div className="ak-text-sm ak-text-gray-600">
-                  {group.memberIds.length} 成员 · {group.totalPoints.toLocaleString()} 积分
+                  {group.memberIds?.length || 0} 成员 · {(group.totalPoints || 0).toLocaleString()} 积分
                 </div>
                 {selectedGroup?.id === group.id && (
                   <div className="ak-mt-2">

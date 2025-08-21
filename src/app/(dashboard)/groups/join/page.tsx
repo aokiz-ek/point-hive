@@ -21,27 +21,27 @@ export default function JoinGroupPage() {
   const groups = LocalStorage.getGroups();
   
   // 过滤出用户已经加入的群组
-  const joinedGroupIds = user ? groups.filter(g => g.memberIds.includes(user.id)).map(g => g.id) : [];
+  const joinedGroupIds = user ? groups.filter(g => g.memberIds?.includes(user.id)).map(g => g.id) : [];
   
   // 过滤出可加入的群组
   const availableGroups = groups.filter(group => {
     // 用户未加入
     if (joinedGroupIds.includes(group.id)) return false;
     // 群组未满员
-    if (group.memberIds.length >= group.maxMembers) return false;
+    if ((group.memberIds?.length || 0) >= group.maxMembers) return false;
     // 公开群组或搜索匹配
     return group.isPublic || (searchTerm && 
-      (group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       group.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       group.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+      (group.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       group.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       group.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
     );
   });
 
   const filteredGroups = availableGroups.filter(group => {
     if (!searchTerm) return true;
-    return group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           group.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           group.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    return group.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           group.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           group.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
   });
 
   const handleJoinGroup = async (group: Group) => {
@@ -49,13 +49,13 @@ export default function JoinGroupPage() {
 
     setLoading(true);
     try {
-      if (group.requireApproval) {
+      if (group.rules?.requireApproval || group.requireApproval) {
         // 需要审批的群组，创建加入申请
         const joinRequest = {
           id: generateId(),
           groupId: group.id,
           userId: user.id,
-          userName: user.nickname || user.name,
+          userName: user.nickname,
           message: '',
           status: 'pending' as const,
           createdAt: new Date().toISOString()
@@ -74,9 +74,10 @@ export default function JoinGroupPage() {
             id: generateId(),
             type: 'join_request' as const,
             title: '新的加入申请',
-            message: `${user.nickname || user.name} 申请加入群组 "${group.name}"`,
+            message: `${user.nickname} 申请加入群组 "${group.name}"`,
             userId: adminId,
             read: false,
+            isRead: false,
             createdAt: new Date().toISOString(),
             metadata: {
               groupId: group.id,
@@ -103,14 +104,15 @@ export default function JoinGroupPage() {
           type: 'system' as const,
           fromUserId: 'system',
           toUserId: user.id,
-          amount: group.settings?.pointsPerMember || 0,
+          amount: 0,
           status: 'completed' as const,
           description: `加入群组 "${group.name}"`,
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           groupId: group.id,
           metadata: {
-            type: 'group_join',
-            groupName: group.name
+            tags: ['group_join'],
+            priority: 'normal' as const
           }
         };
 
@@ -127,9 +129,10 @@ export default function JoinGroupPage() {
               id: generateId(),
               type: 'group_member_joined' as const,
               title: '新成员加入',
-              message: `${user.nickname || user.name} 加入了群组 "${group.name}"`,
+              message: `${user.nickname} 加入了群组 "${group.name}"`,
               userId: memberId,
               read: false,
+              isRead: false,
               createdAt: new Date().toISOString(),
               metadata: {
                 groupId: group.id,
@@ -234,7 +237,7 @@ export default function JoinGroupPage() {
                 <div>
                   <p className="ak-text-gray-500">总积分</p>
                   <p className="ak-font-semibold ak-text-green-600">
-                    {group.totalPoints.toLocaleString()}
+                    {(group.totalPoints || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -243,7 +246,7 @@ export default function JoinGroupPage() {
                 <div className="ak-mb-4">
                   <p className="ak-text-sm ak-text-gray-600">
                     加入可获得 <span className="ak-font-semibold ak-text-blue-600">
-                      {group.settings.pointsPerMember.toLocaleString()}
+                      {(group.settings.pointsPerMember || 0).toLocaleString()}
                     </span> 积分
                   </p>
                 </div>

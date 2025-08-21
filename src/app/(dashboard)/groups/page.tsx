@@ -13,14 +13,14 @@ export default function GroupsPage() {
   const [filter, setFilter] = useState<'all' | 'owned' | 'member'>('all');
 
   const filteredGroups = groups?.filter(group => {
-    const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = group.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (group.description && group.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
     if (filter === 'owned') {
       return matchesSearch && group.ownerId === '1'; // 当前用户ID
     }
     if (filter === 'member') {
-      return matchesSearch && group.ownerId !== '1' && group.memberIds.includes('1');
+      return matchesSearch && group.ownerId !== '1' && group.memberIds?.includes('1');
     }
     
     return matchesSearch;
@@ -119,7 +119,7 @@ export default function GroupsPage() {
                       群主
                     </span>
                   )}
-                  {group.adminIds.includes('1') && group.ownerId !== '1' && (
+                  {group.adminIds?.includes('1') && group.ownerId !== '1' && (
                     <span className="ak-bg-purple-100 ak-text-purple-800 ak-text-xs ak-px-2 ak-py-1 ak-rounded-full">
                       管理员
                     </span>
@@ -136,26 +136,26 @@ export default function GroupsPage() {
                 <div>
                   <p className="ak-text-gray-500">成员数量</p>
                   <p className="ak-font-semibold">
-                    {group.memberIds.length}/{group.maxMembers}
+                    {group.memberIds?.length || 0}/{group.maxMembers}
                   </p>
                 </div>
                 <div>
                   <p className="ak-text-gray-500">总积分</p>
                   <p className="ak-font-semibold ak-text-green-600">
-                    {group.totalPoints.toLocaleString()}
+                    {(group.totalPoints || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
 
               <div className="ak-flex ak-flex-wrap ak-gap-2 ak-mb-4">
-                {group.tags.map((tag) => (
+                {group.tags?.map((tag) => (
                   <span
                     key={tag}
                     className="ak-bg-gray-100 ak-text-gray-700 ak-text-xs ak-px-2 ak-py-1 ak-rounded"
                   >
                     {tag}
                   </span>
-                ))}
+                )) || []}
               </div>
 
               <div className="ak-flex ak-space-x-2">

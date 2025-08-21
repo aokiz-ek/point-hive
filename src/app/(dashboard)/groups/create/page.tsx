@@ -33,10 +33,10 @@ export default function CreateGroupPage() {
   };
 
   const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
+    if (newTag.trim() && !formData.tags?.includes(newTag.trim())) {
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, newTag.trim()]
+        tags: [...(prev.tags || []), newTag.trim()]
       }));
       setNewTag('');
     }
@@ -96,15 +96,31 @@ export default function CreateGroupPage() {
         totalPoints: formData.initialPoints,
         isPublic: formData.isPublic,
         tags: formData.tags,
-        requireApproval: formData.requireApproval,
+        inviteCode: generateId().slice(0, 6).toUpperCase(),
+        status: 'active' as const,
+        rules: {
+          maxTransferAmount: 5000,
+          maxPendingAmount: 10000,
+          defaultReturnPeriod: 7,
+          creditScoreThreshold: 600,
+          allowAnonymousTransfer: false,
+          requireApproval: formData.requireApproval,
+          autoReminderEnabled: true,
+          allowPartialReturn: true,
+          dailyTransferLimit: 50000,
+          memberJoinApproval: formData.requireApproval
+        },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         settings: {
-          allowInvites: true,
-          requireApprovalForTransfer: false,
-          autoApproveSmallAmounts: true,
-          maxTransferAmount: 5000,
-          pointsPerMember: formData.initialPoints
+          autoAcceptTransfers: true,
+          notificationSound: true,
+          showMemberActivity: true,
+          allowMemberInvite: true,
+          requireVerifiedEmail: false,
+          requireVerifiedPhone: false,
+          enableCreditLimit: true,
+          enableTimeLimit: true
         }
       };
 
@@ -122,10 +138,11 @@ export default function CreateGroupPage() {
           status: 'completed' as const,
           description: `群组 "${newGroup.name}" 初始积分`,
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           groupId: newGroup.id,
           metadata: {
-            type: 'group_initial_points',
-            groupName: newGroup.name
+            tags: ['group_creation', 'initial_points'],
+            priority: 'normal' as const
           }
         };
         LocalStorage.addTransaction(initialTransaction);

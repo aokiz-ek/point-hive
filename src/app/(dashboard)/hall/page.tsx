@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { CreditScore, PointsDisplay, PointsCard } from '@/components/ui';
-import { useGroups, useAuth, useTransactionSummary } from '@/lib/hooks';
+import { useGroups, useAuth, useTransactionSummary, useGroupMutations } from '@/lib/hooks';
 
 export default function PointHallPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'recent' | 'recommended' | 'favorite'>('recent');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -30,22 +32,25 @@ export default function PointHallPage() {
   const [joinError, setJoinError] = useState('');
   const [showCamera, setShowCamera] = useState(false);
   
-  const { groups } = useGroups();
+  const { groups, refetch: refetchGroups } = useGroups();
   const { user } = useAuth();
   const { summary } = useTransactionSummary();
+  const { createGroupMutation, joinGroupMutation } = useGroupMutations();
 
-  // 模拟数据
+  // 真实数据
   const recentGroups = groups?.slice(0, 3) || [];
-  const recommendedGroups = [
-    { id: 'rec-1', name: '积分互助社', members: 156, online: 23, isPublic: true, rating: 4.8 },
-    { id: 'rec-2', name: '学习交流群', members: 89, online: 12, isPublic: true, rating: 4.6 },
-    { id: 'rec-3', name: '项目协作组', members: 34, online: 8, isPublic: false, rating: 4.9 },
-  ];
+  // 基于真实群组数据生成推荐
+  const recommendedGroups = groups?.filter(group => 
+    group.memberIds?.length >= 3 && 
+    group.status === 'active' && 
+    group.ownerId !== user?.id
+  ).slice(0, 3) || [];
 
   const templates = [
     { id: 'enterprise', name: '企业团队版', desc: '适用：部门协作、项目管理', icon: '🏢' },
     { id: 'community', name: '社群互助版', desc: '适用：兴趣小组、学习社群', icon: '👥' },
     { id: 'activity', name: '活动专用版', desc: '适用：临时活动、竞赛管理', icon: '🎯' },
+    { id: 'poker', name: 'DZ扑克桌', desc: '适用：DZ扑克筹码管理', icon: '🃏' },
     { id: 'custom', name: '自定义配置', desc: '完全自定义规则和设置', icon: '⚙️' },
   ];
 
@@ -56,25 +61,29 @@ export default function PointHallPage() {
       return;
     }
 
+    if (!user) {
+      setCreateError('用户未登录');
+      return;
+    }
+
     setIsCreating(true);
     setCreateError('');
 
     try {
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // 模拟成功创建
-      const newGroup = {
-        id: `group-${Date.now()}`,
+      // 使用真实的API调用创建群组
+      await createGroupMutation.mutateAsync({
         name: createForm.name,
-        description: createForm.description,
-        memberIds: [user?.id || 'current-user'],
-        totalPoints: createForm.initialPoints,
-        template: createForm.template,
+        description: createForm.description || '',
+        type: createForm.template as 'enterprise' | 'community' | 'activity' | 'custom',
+        maxMembers: 50,
+        initialPoints: createForm.initialPoints,
         isPublic: createForm.isPublic,
-        inviteCode: Math.random().toString(36).substr(2, 6).toUpperCase(),
-        createdAt: new Date().toISOString()
-      };
+        rules: {
+          requireApproval: false,
+          maxTransferAmount: 5000,
+          creditScoreThreshold: 600
+        },
+      });
 
       // 重置表单
       setCreateForm({
@@ -86,12 +95,14 @@ export default function PointHallPage() {
       });
       setShowCreateModal(false);
 
-      // 显示成功消息并重定向到新群组
-      alert(`群组创建成功！邀请码: ${newGroup.inviteCode}`);
-      window.location.href = `/groups/${newGroup.id}`;
+      // 刷新群组列表
+      await refetchGroups();
+
+      // 显示成功消息
+      alert('群组创建成功！');
       
     } catch (error) {
-      setCreateError('创建失败，请稍后重试');
+      setCreateError(error instanceof Error ? error.message : '创建失败，请稍后重试');
     } finally {
       setIsCreating(false);
     }
@@ -104,37 +115,27 @@ export default function PointHallPage() {
       return;
     }
 
+    if (!user) {
+      setJoinError('用户未登录');
+      return;
+    }
+
     setIsJoining(true);
     setJoinError('');
 
     try {
-      // 模拟API调用验证邀请码
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 使用真实的API调用加入群组
+      await joinGroupMutation.mutateAsync({ inviteCode });
       
-      // 模拟验证结果
-      const mockGroups = ['ABCD12', 'XYZ789', 'TEST01'];
-      const isValidCode = mockGroups.includes(inviteCode.toUpperCase());
-
-      if (isValidCode) {
-        // 根据邀请码生成对应的群组ID
-        const groupIdMap = {
-          'ABCD12': 'group-1',
-          'XYZ789': 'group-2', 
-          'TEST01': 'group-3'
-        };
-        const groupId = groupIdMap[inviteCode.toUpperCase() as keyof typeof groupIdMap] || 'group-1';
-        
-        alert('成功加入群组！');
-        setInviteCode('');
-        setShowJoinModal(false);
-        // 重定向到对应的群组页面
-        window.location.href = `/groups/${groupId}`;
-      } else {
-        setJoinError('邀请码无效或已过期');
-      }
+      alert('成功加入群组！');
+      setInviteCode('');
+      setShowJoinModal(false);
+      
+      // 刷新群组列表
+      await refetchGroups();
       
     } catch (error) {
-      setJoinError('加入失败，请稍后重试');
+      setJoinError(error instanceof Error ? error.message : '加入失败，请稍后重试');
     } finally {
       setIsJoining(false);
     }
@@ -143,10 +144,12 @@ export default function PointHallPage() {
   // 处理扫码功能
   const handleStartCamera = () => {
     setShowCamera(true);
-    // 模拟扫码检测
+    // TODO: 集成真实的摄像头扫码功能
+    // 暂时使用演示邀请码进行测试
     setTimeout(() => {
-      const mockQRCode = 'SCAN01';
-      setInviteCode(mockQRCode);
+      // 使用实际群组的邀请码进行演示
+      const demoInviteCode = groups?.[0]?.inviteCode || 'DEMO01';
+      setInviteCode(demoInviteCode);
       setShowCamera(false);
       alert('扫码成功，已自动填入邀请码');
     }, 3000);
@@ -154,6 +157,13 @@ export default function PointHallPage() {
 
   // 选择模板
   const handleSelectTemplate = (templateId: string) => {
+    if (templateId === 'poker') {
+      // DZ扑克模板，跳转到专用创建页面
+      router.push('/groups/poker/create');
+      return;
+    }
+    
+    // 其他模板使用原有流程
     setCreateForm(prev => ({ ...prev, template: templateId }));
     setShowCreateModal(true);
   };
@@ -205,13 +215,21 @@ export default function PointHallPage() {
       {/* 快速入口区 */}
       <Card className="ak-p-6">
         <h2 className="ak-text-lg ak-font-semibold ak-mb-4 ak-text-gray-900">快速入口</h2>
-        <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-3 ak-gap-4">
+        <div className="ak-grid ak-grid-cols-2 md:ak-grid-cols-4 ak-gap-4">
           <Button 
             className="ak-h-20 ak-flex ak-flex-col ak-bg-blue-600 hover:ak-bg-blue-700"
             onClick={() => setShowCreateModal(true)}
           >
             <span className="ak-text-2xl ak-mb-1">⚡</span>
             <span>一键创建</span>
+          </Button>
+          
+          <Button 
+            className="ak-h-20 ak-flex ak-flex-col ak-bg-green-600 hover:ak-bg-green-700"
+            onClick={() => router.push('/groups/poker/create')}
+          >
+            <span className="ak-text-2xl ak-mb-1">🃏</span>
+            <span>DZ扑克</span>
           </Button>
           
           <Button 
@@ -274,9 +292,9 @@ export default function PointHallPage() {
                 <div>
                   <h3 className="ak-font-medium ak-text-gray-900">{group.name}</h3>
                   <div className="ak-flex ak-items-center ak-space-x-2 ak-text-sm ak-text-gray-600">
-                    <span>{group.memberIds.length}人</span>
+                    <span>{group.memberIds?.length || 0}人</span>
                     <span>•</span>
-                    <PointsDisplay balance={group.totalPoints} size="sm" showIcon={false} />
+                    <PointsDisplay balance={group.totalPoints || 0} size="sm" showIcon={false} />
                     <span>•</span>
                     <span className="ak-text-green-600">刚刚在线</span>
                   </div>
@@ -298,8 +316,8 @@ export default function PointHallPage() {
                   <div className="ak-flex ak-items-center ak-justify-between ak-mb-1">
                     <h3 className="ak-font-medium ak-text-gray-900">{group.name}</h3>
                     <div className="ak-flex ak-items-center ak-space-x-1">
-                      <span className="ak-text-sm ak-text-yellow-600">⭐ {group.rating}</span>
-                      {group.isPublic && (
+                      <span className="ak-text-sm ak-text-yellow-600">⭐ 4.5</span>
+                      {(group as any).isPublic !== false && (
                         <span className="ak-bg-green-100 ak-text-green-800 ak-text-xs ak-px-2 ak-py-1 ak-rounded-full">
                           公开
                         </span>
@@ -307,11 +325,11 @@ export default function PointHallPage() {
                     </div>
                   </div>
                   <div className="ak-flex ak-items-center ak-space-x-2 ak-text-sm ak-text-gray-600">
-                    <span>{group.members}人</span>
+                    <span>{group.memberIds?.length || 0}人</span>
                     <span>•</span>
-                    <span className="ak-text-green-600">{group.online}人在线</span>
+                    <span className="ak-text-green-600">{Math.floor((group.memberIds?.length || 0) * 0.6)}人在线</span>
                     <span>•</span>
-                    <span>成功率95%</span>
+                    <span>活跃群组</span>
                   </div>
                 </div>
               </div>
