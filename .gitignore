@@ -142,3 +142,8 @@ vite.config.ts.timestamp-*
 docx/
 !README.md
 *.md
+
+# Database scripts (sensitive information)
+sql/
+sqlx/
+*.sql

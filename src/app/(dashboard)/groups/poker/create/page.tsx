@@ -6,13 +6,16 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/hooks';
-import { LocalStorage, generateId } from '@/lib/utils/local-storage';
-import type { Group } from '@/lib/types';
+import { pokerService } from '@/lib/services';
+import { generateId } from '@/lib/utils/local-storage';
 
 interface PokerPlayer {
   id: string;
   name: string;
-  isCreator?: boolean;
+  isCreator: boolean;
+  userId?: string;
+  fullName?: string;
+  creditScore?: number;
 }
 
 export default function CreatePokerGroupPage() {
@@ -36,7 +39,8 @@ export default function CreatePokerGroupPage() {
     {
       id: generateId(),
       name: user?.nickname || '我',
-      isCreator: true
+      isCreator: true,
+      userId: user?.id
     }
   ]);
   const [newPlayerName, setNewPlayerName] = useState('');
@@ -106,18 +110,50 @@ export default function CreatePokerGroupPage() {
   }, []); // 空依赖数组，只在组件挂载时执行一次
 
   // 快速添加预设玩家
-  const addPresetPlayers = () => {
-    const presetNames = ['Tomas', 'Sean', 'Iolo', 'Flynn', 'Jeff', 'David', 'Ray', 'GOGO', 'Yang'];
-    const currentCount = players.length;
-    const maxToAdd = Math.min(presetNames.length, formData.maxPlayers - currentCount);
+  const addPresetPlayers = async () => {
+    setLoading(true);
     
-    const newPlayers: PokerPlayer[] = presetNames.slice(0, maxToAdd).map(name => ({
-      id: generateId(),
-      name,
-      isCreator: false
-    }));
-    
-    setPlayers(prev => [...prev, ...newPlayers]);
+    try {
+      // 从数据库获取预设玩家
+      const result = await pokerService.getPresetPlayers();
+      
+      if (!result.success || !result.data) {
+        console.error('获取预设玩家失败:', result.error);
+        // 如果数据库获取失败，使用原有的临时玩家逻辑
+        const presetNames = ['Tomas', 'Sean', 'Iolo', 'Flynn', 'Jeff', 'David', 'Ray', 'GOGO', 'Yang'];
+        const currentCount = players.length;
+        const maxToAdd = Math.min(presetNames.length, formData.maxPlayers - currentCount);
+        
+        const newPlayers: PokerPlayer[] = presetNames.slice(0, maxToAdd).map(name => ({
+          id: generateId(),
+          name,
+          isCreator: false
+        }));
+        
+        setPlayers(prev => [...prev, ...newPlayers]);
+        return;
+      }
+
+      const presetPlayers = result.data as any[];
+      const currentCount = players.length;
+      const maxToAdd = Math.min(presetPlayers.length, formData.maxPlayers - currentCount);
+      
+      const newPlayers: PokerPlayer[] = presetPlayers.slice(0, maxToAdd).map(player => ({
+        id: player.id,
+        name: player.name,
+        isCreator: false,
+        userId: player.userId,
+        fullName: player.fullName,
+        creditScore: player.creditScore
+      }));
+      
+      setPlayers(prev => [...prev, ...newPlayers]);
+      
+    } catch (error) {
+      console.error('添加预设玩家失败:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // AI自动命名函数
@@ -258,85 +294,16 @@ export default function CreatePokerGroupPage() {
     setLoading(true);
 
     try {
-      const pokerGroup: Group = {
-        id: generateId(),
-        name: `🃏 ${formData.tableName}`,
-        description: `DZ扑克 ${formData.gameType === 'cash' ? '现金桌' : '锦标赛'} - ${formData.smallBlind}/${formData.bigBlind} 盲注`,
-        ownerId: user.id,
-        adminIds: [user.id],
-        memberIds: players.map(p => p.isCreator ? user.id : p.id),
-        maxMembers: formData.maxPlayers,
-        totalPoints: formData.initialChips * players.length,
-        isPublic: false,
-        tags: ['DZ扑克', formData.gameType, '筹码管理'],
-        inviteCode: generateId().slice(0, 6).toUpperCase(),
-        status: 'active' as const,
-        rules: {
-          maxTransferAmount: formData.initialChips * 2, // 最大转移金额为初始筹码2倍
-          maxPendingAmount: formData.initialChips * 3,
-          defaultReturnPeriod: 1, // DZ扑克场景，1天内结算
-          creditScoreThreshold: 500, // 降低信用门槛
-          allowAnonymousTransfer: true, // 允许匿名转移
-          requireApproval: false, // 不需要审批
-          autoReminderEnabled: true,
-          allowPartialReturn: true,
-          dailyTransferLimit: formData.initialChips * 10,
-          memberJoinApproval: false
-        },
-        settings: {
-          autoAcceptTransfers: true, // 自动接受转移
-          notificationSound: true,
-          showMemberActivity: true,
-          allowMemberInvite: false, // 不允许成员邀请
-          requireVerifiedEmail: false,
-          requireVerifiedPhone: false,
-          enableCreditLimit: false, // 禁用信用限制
-          enableTimeLimit: false,
-          pointsPerMember: formData.initialChips
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      // 添加DZ扑克专用元数据
-      (pokerGroup as any).pokerSettings = {
-        gameType: formData.gameType,
-        smallBlind: formData.smallBlind,
-        bigBlind: formData.bigBlind,
-        initialChips: formData.initialChips,
-        playerNames: players.map(p => ({ id: p.id, name: p.name, isCreator: p.isCreator })),
-        sessionStartTime: new Date().toISOString(),
-        gameStatus: 'active'
-      };
-
-      // 保存群组到本地存储
-      LocalStorage.addGroup(pokerGroup);
-
-      // 为每个玩家创建初始筹码记录
-      players.forEach(player => {
-        const initialTransaction = {
-          id: generateId(),
-          type: 'system' as const,
-          fromUserId: 'system',
-          toUserId: player.isCreator ? user.id : player.id,
-          amount: formData.initialChips,
-          status: 'completed' as const,
-          description: `DZ扑克初始筹码 - 玩家: ${player.name}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          groupId: pokerGroup.id,
-          metadata: {
-            tags: ['poker', 'initial_chips', formData.gameType],
-            priority: 'normal' as const,
-            playerName: player.name,
-            isCreator: player.isCreator || false
-          }
-        };
-        LocalStorage.addTransaction(initialTransaction);
-      });
+      // 使用 pokerService 创建扑克群组
+      const result = await pokerService.createPokerGroup(user.id, formData, players);
+      
+      if (!result.success) {
+        setErrors({ submit: result.error || '创建失败，请重试' });
+        return;
+      }
 
       // 跳转到DZ扑克专用管理页面
-      router.push(`/groups/poker/${pokerGroup.id}`);
+      router.push(`/groups/poker/${result.data.id}`);
       
     } catch (error) {
       console.error('创建DZ扑克桌失败:', error);
@@ -347,7 +314,7 @@ export default function CreatePokerGroupPage() {
   };
 
   return (
-    <div className="ak-space-y-6 ak-max-w-4xl ak-mx-auto">
+    <div className="ak-space-y-6 ak-max-w-6xl ak-mx-auto">
       {/* 页面标题 */}
       <div className="ak-text-center">
         <h1 className="ak-text-3xl ak-font-bold ak-text-gray-900 ak-mb-2">🃏 创建DZ扑克桌</h1>
