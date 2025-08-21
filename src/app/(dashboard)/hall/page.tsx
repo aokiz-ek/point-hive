@@ -217,7 +217,8 @@ export default function PointHallPage() {
         <h2 className="ak-text-lg ak-font-semibold ak-mb-4 ak-text-gray-900">快速入口</h2>
         <div className="ak-grid ak-grid-cols-2 md:ak-grid-cols-4 ak-gap-4">
           <Button 
-            className="ak-h-20 ak-flex ak-flex-col ak-bg-blue-600 hover:ak-bg-blue-700"
+            variant="ghost"
+            className="ak-h-20 ak-flex ak-flex-col ak-bg-blue-600 hover:ak-bg-blue-700 ak-text-white hover:ak-text-white"
             onClick={() => setShowCreateModal(true)}
           >
             <span className="ak-text-2xl ak-mb-1">⚡</span>
@@ -225,7 +226,8 @@ export default function PointHallPage() {
           </Button>
           
           <Button 
-            className="ak-h-20 ak-flex ak-flex-col ak-bg-green-600 hover:ak-bg-green-700"
+            variant="ghost"
+            className="ak-h-20 ak-flex ak-flex-col ak-bg-green-600 hover:ak-bg-green-700 ak-text-white hover:ak-text-white"
             onClick={() => router.push('/groups/poker/create')}
           >
             <span className="ak-text-2xl ak-mb-1">🃏</span>

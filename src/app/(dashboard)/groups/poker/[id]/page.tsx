@@ -86,14 +86,17 @@ export default function PokerGroupPage() {
       );
       
       let currentChips = 0;
-      let totalBought = 0; // 只统计从系统的真正买入
-      let totalWon = 0;    // 通过转移获得的筹码
-      let totalLost = 0;   // 通过转移失去的筹码
+      let totalBought = 0;  // 只统计从系统的真正买入
+      let totalWon = 0;     // 通过转移获得的筹码
+      let totalLost = 0;    // 通过转移失去的筹码
+      let winIncome = 0;    // 通过"赢得"获得的筹码
+      let winExpense = 0;   // 通过"赢得"失去的筹码
       
       playerTransactions.forEach(transaction => {
         const isSystemTransaction = transaction.type === 'system' && transaction.fromUserId === 'system';
         const isReceivedTransaction = transaction.toUserId === (player.isCreator ? user?.id : player.id);
         const isSentTransaction = transaction.fromUserId === (player.isCreator ? user?.id : player.id);
+        const transferType = transaction.metadata?.transferType;
         
         if (isSystemTransaction) {
           // 真正的买入：从系统获得的初始筹码
@@ -103,10 +106,20 @@ export default function PokerGroupPage() {
           // 通过转移获得筹码（包括之前标记为buy_in的交易）
           currentChips += transaction.amount;
           totalWon += transaction.amount;
+          
+          // 只统计"win"类型的收入到净利润
+          if (transferType === 'win') {
+            winIncome += transaction.amount;
+          }
         } else if (isSentTransaction) {
           // 通过转移失去筹码
           currentChips -= transaction.amount;
           totalLost += transaction.amount;
+          
+          // 只统计"win"类型的支出到净利润
+          if (transferType === 'win') {
+            winExpense += transaction.amount;
+          }
         }
       });
       
@@ -118,7 +131,7 @@ export default function PokerGroupPage() {
         totalBought,
         totalWon,
         totalLost,
-        netResult: currentChips - totalBought
+        netResult: winIncome - winExpense // 净利润 = 赢得的筹码 - 输掉的筹码（只计算win类型）
       };
     });
     
@@ -138,6 +151,191 @@ export default function PokerGroupPage() {
     }
     
     setPlayers(playersData);
+  };
+
+  // 测试工具函数
+  const runTestScenario = (scenario: string) => {
+    if (!user || !groupId) return;
+    
+    const wadePlayer = players.find(p => p.name.toLowerCase().includes('wade') || p.isCreator);
+    const tomasPlayer = players.find(p => p.name.toLowerCase().includes('tomas'));
+    
+    if (!wadePlayer || !tomasPlayer) {
+      alert('找不到Wade或Tomas玩家，无法运行测试场景');
+      return;
+    }
+
+    const wadeId = wadePlayer.isCreator ? user.id : wadePlayer.id;
+    const tomasId = tomasPlayer.isCreator ? user.id : tomasPlayer.id;
+    
+    switch (scenario) {
+      case 'win_lose':
+        // Wade赢得Tomas 2000筹码
+        createTestTransaction(tomasId, wadeId, 2000, '测试：Wade赢得筹码', 'win');
+        setTimeout(() => {
+          // Wade借出1000筹码给Tomas
+          createTestTransaction(wadeId, tomasId, 1000, '测试：Wade借出筹码', 'loan');
+        }, 500);
+        break;
+        
+      case 'multi_transfer':
+        // 创建循环借贷场景
+        if (players.length >= 3) {
+          const player3 = players[2];
+          const player3Id = player3.isCreator ? user.id : player3.id;
+          
+          createTestTransaction(wadeId, tomasId, 500, '测试：Wade→Tomas', 'loan');
+          setTimeout(() => {
+            createTestTransaction(tomasId, player3Id, 300, '测试：Tomas→第三人', 'loan');
+          }, 300);
+          setTimeout(() => {
+            createTestTransaction(player3Id, wadeId, 800, '测试：第三人→Wade', 'win');
+          }, 600);
+        }
+        break;
+        
+      case 'big_game':
+        // 创建大量随机交易
+        for (let i = 0; i < 10; i++) {
+          setTimeout(() => {
+            const randomFrom = players[Math.floor(Math.random() * players.length)];
+            const randomTo = players[Math.floor(Math.random() * players.length)];
+            if (randomFrom.id !== randomTo.id) {
+              const fromId = randomFrom.isCreator ? user.id : randomFrom.id;
+              const toId = randomTo.isCreator ? user.id : randomTo.id;
+              const amount = Math.floor(Math.random() * 1000) + 100;
+              const type = Math.random() > 0.5 ? 'win' : 'loan';
+              createTestTransaction(fromId, toId, amount, `测试交易${i+1}`, type);
+            }
+          }, i * 200);
+        }
+        break;
+    }
+  };
+
+  const createTestTransaction = (fromUserId: string, toUserId: string, amount: number, description: string, transferType: 'win' | 'loan') => {
+    const transaction = {
+      id: generateId(),
+      type: 'transfer' as const,
+      fromUserId,
+      toUserId,
+      amount,
+      status: 'completed' as const,
+      description,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      groupId,
+      metadata: {
+        tags: ['chip_transfer', 'test_data'],
+        priority: 'normal' as const,
+        transferType
+      }
+    };
+    
+    LocalStorage.addTransaction(transaction);
+    
+    // 重新计算玩家筹码
+    if (group) {
+      const pokerSettings = (group as any).pokerSettings;
+      if (pokerSettings?.playerNames) {
+        calculatePlayerChips(group, pokerSettings.playerNames);
+      }
+    }
+  };
+
+  const validateChipConservation = () => {
+    const totalCurrent = players.reduce((sum, p) => sum + p.currentChips, 0);
+    const totalBought = players.reduce((sum, p) => sum + p.totalBought, 0);
+    const allTransactions = LocalStorage.getTransactions().filter(t => t.groupId === groupId);
+    
+    const result = {
+      isValid: totalCurrent === totalBought,
+      totalCurrent,
+      totalBought,
+      difference: totalCurrent - totalBought,
+      transactionCount: allTransactions.length,
+      systemTransactions: allTransactions.filter(t => t.type === 'system').length,
+      transferTransactions: allTransactions.filter(t => t.type === 'transfer').length
+    };
+    
+    alert(`筹码守恒验证结果:\n${JSON.stringify(result, null, 2)}`);
+  };
+
+  const showDetailedStats = () => {
+    const stats = players.map(player => ({
+      name: player.name,
+      currentChips: player.currentChips,
+      totalBought: player.totalBought,
+      totalWon: player.totalWon,
+      totalLost: player.totalLost,
+      netResult: player.netResult
+    }));
+    
+    console.table(stats);
+    alert('详细统计已输出到控制台，请按F12查看');
+  };
+
+  const exportTestData = () => {
+    const allTransactions = LocalStorage.getTransactions().filter(t => t.groupId === groupId);
+    const exportData = {
+      players,
+      transactions: allTransactions,
+      summary: {
+        totalPlayers: players.length,
+        totalChips: players.reduce((sum, p) => sum + p.currentChips, 0),
+        totalBought: players.reduce((sum, p) => sum + p.totalBought, 0),
+        totalTransactions: allTransactions.length
+      }
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `poker_test_data_${new Date().toISOString().slice(0, 16)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const resetAllTransactions = () => {
+    if (confirm('确定要重置所有交易记录吗？此操作不可撤销。')) {
+      const allTransactions = LocalStorage.getTransactions();
+      const otherTransactions = allTransactions.filter(t => t.groupId !== groupId);
+      localStorage.setItem('pointHive_transactions', JSON.stringify(otherTransactions));
+      
+      // 重新计算玩家筹码
+      if (group) {
+        const pokerSettings = (group as any).pokerSettings;
+        if (pokerSettings?.playerNames) {
+          calculatePlayerChips(group, pokerSettings.playerNames);
+        }
+      }
+      
+      alert('所有交易记录已重置');
+    }
+  };
+
+  const resetToInitialState = () => {
+    if (confirm('确定要恢复到游戏初始状态吗？这将删除所有转移记录，只保留初始筹码。')) {
+      const allTransactions = LocalStorage.getTransactions();
+      const otherTransactions = allTransactions.filter(t => t.groupId !== groupId);
+      const initialTransactions = allTransactions.filter(t => 
+        t.groupId === groupId && t.type === 'system' && t.fromUserId === 'system'
+      );
+      
+      localStorage.setItem('pointHive_transactions', JSON.stringify([...otherTransactions, ...initialTransactions]));
+      
+      // 重新计算玩家筹码
+      if (group) {
+        const pokerSettings = (group as any).pokerSettings;
+        if (pokerSettings?.playerNames) {
+          calculatePlayerChips(group, pokerSettings.playerNames);
+        }
+      }
+      
+      alert('游戏已恢复到初始状态');
+    }
   };
 
   // 快速筹码转移
@@ -340,11 +538,13 @@ export default function PokerGroupPage() {
         totalWonFromOthers,
         totalLostToOthers,
         netTransferResult: totalWonFromOthers - totalLostToOthers,
+        netResult: player.netResult, // 添加最终净利润
         opponents: opponents.sort((a, b) => b.netAmount - a.netAmount)
       };
     }).filter(Boolean);
     
-    return playerStats.sort((a, b) => b.netTransferResult - a.netTransferResult);
+    // 按最终净利润排序，而不是按转移净收益排序
+    return playerStats.sort((a, b) => b.netResult - a.netResult);
   };
 
   // 计算结算数据
@@ -355,7 +555,7 @@ export default function PokerGroupPage() {
     const initialChips = pokerSettings.initialChips;
     const settlement = players.map(player => ({
       ...player,
-      netResult: player.currentChips - player.totalBought,
+      netResult: player.netResult, // 使用已经正确计算的净利润（只包含win类型交易）
       finalAmount: player.currentChips
     }));
     
@@ -619,8 +819,8 @@ export default function PokerGroupPage() {
                 key={playerStat.id}
                 className={`ak-flex ak-justify-between ak-items-center ak-p-3 ak-rounded-lg ak-border ak-transition-all ak-duration-200 ${
                   index === 0 ? 'ak-bg-gradient-to-r ak-from-green-50 ak-to-emerald-50 ak-border-green-200' :
-                  playerStat.netTransferResult > 0 ? 'ak-bg-green-50 ak-border-green-200' :
-                  playerStat.netTransferResult < 0 ? 'ak-bg-red-50 ak-border-red-200' :
+                  playerStat.netResult > 0 ? 'ak-bg-green-50 ak-border-green-200' :
+                  playerStat.netResult < 0 ? 'ak-bg-red-50 ak-border-red-200' :
                   'ak-bg-gray-50 ak-border-gray-200'
                 }`}
               >
@@ -640,13 +840,13 @@ export default function PokerGroupPage() {
                 </div>
                 <div className="ak-text-right">
                   <div className={`ak-font-bold ak-text-lg ${
-                    playerStat.netTransferResult > 0 ? 'ak-text-green-600' :
-                    playerStat.netTransferResult < 0 ? 'ak-text-red-600' :
+                    playerStat.netResult > 0 ? 'ak-text-green-600' :
+                    playerStat.netResult < 0 ? 'ak-text-red-600' :
                     'ak-text-gray-600'
                   }`}>
-                    {playerStat.netTransferResult > 0 ? '+' : ''}{playerStat.netTransferResult.toLocaleString()}
+                    {playerStat.netResult > 0 ? '+' : ''}{playerStat.netResult.toLocaleString()}
                   </div>
-                  <div className="ak-text-xs ak-text-gray-500">净收益</div>
+                  <div className="ak-text-xs ak-text-gray-500">净利润</div>
                 </div>
               </div>
             ));

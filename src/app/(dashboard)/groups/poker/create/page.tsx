@@ -79,7 +79,12 @@ export default function CreatePokerGroupPage() {
   };
 
   const removePlayer = (playerId: string) => {
-    setPlayers(prev => prev.filter(p => p.id !== playerId && !p.isCreator));
+    setPlayers(prev => prev.filter(p => {
+      // 保留创建者，不允许删除
+      if (p.isCreator) return true;
+      // 删除指定的非创建者玩家
+      return p.id !== playerId;
+    }));
   };
 
   const updatePlayerName = (playerId: string, newName: string) => {
