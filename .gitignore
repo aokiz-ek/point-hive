@@ -139,6 +139,5 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Product design documentation (internal use only)
-PRODUCT_SUMMARY.md
-UI_DESIGN_GUIDE.md
+!README.md
 *.md
