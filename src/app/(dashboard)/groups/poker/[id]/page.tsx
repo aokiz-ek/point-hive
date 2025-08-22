@@ -610,26 +610,15 @@ export default function PokerGroupPage() {
         {/* 玩家筹码显示 */}
         <div className="ak-grid ak-grid-cols-1 sm:ak-grid-cols-2 lg:ak-grid-cols-3 ak-gap-3 sm:ak-gap-4">
           {players.map((player, index) => (
-            <Card key={player.id} className={`ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-transition-shadow ak-hover:shadow-lg ak-hover:shadow-amber-500/20 ak-p-3 sm:ak-p-4 ${
-              index === 0 ? 'ak-border-amber-500/40 ak-shadow-amber-500/20' : 'ak-border-gray-600/40'
-            }`}>
-              {index === 0 && (
-                <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-amber-400 ak-to-transparent"></div>
-              )}
-              {index === 0 && (
-                <div className="ak-absolute ak-top-2 ak-right-2 ak-text-sm ak-text-amber-400">
-                  👑
-                </div>
-              )}
+            <Card key={player.id} className="ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-transition-shadow ak-hover:shadow-lg ak-hover:shadow-amber-500/20 ak-p-3 sm:ak-p-4 ak-border-gray-600/40">
             
             <div className="ak-flex ak-items-center ak-justify-between ak-mb-3">
               <div className="ak-flex ak-items-center ak-space-x-2 ak-min-w-0 ak-flex-1">
                 <span className="ak-text-base sm:ak-text-lg ak-flex-shrink-0">
-                  {player.isCreator ? '👑' : '🎭'}
+                  🎭
                 </span>
                 <h3 className="ak-text-sm sm:ak-text-base ak-font-semibold ak-text-gray-100 ak-truncate">
                   {player.name}
-                  {player.isCreator && <span className="ak-text-xs ak-text-blue-400 ak-ml-1">(你)</span>}
                 </h3>
               </div>
               <div className="ak-text-xs ak-px-2 ak-py-1 ak-rounded ak-bg-blue-600/30 ak-text-blue-300 ak-border ak-border-blue-500/40 ak-flex-shrink-0">

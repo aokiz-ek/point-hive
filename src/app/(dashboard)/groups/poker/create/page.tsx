@@ -34,19 +34,12 @@ export default function CreatePokerGroupPage() {
     initialChips: 2000,
     smallBlind: 10,
     bigBlind: 20,
-    maxPlayers: 9,
+    maxPlayers: 10,
     gameType: 'points' as 'points' | 'tournament'
   });
 
   // 玩家管理
-  const [players, setPlayers] = useState<PokerPlayer[]>([
-    {
-      id: generateId(),
-      name: user.nickname || '我',
-      isCreator: true,
-      userId: user.id
-    }
-  ]);
+  const [players, setPlayers] = useState<PokerPlayer[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [isGeneratingName, setIsGeneratingName] = useState(false);
   const [showNameSuggestion, setShowNameSuggestion] = useState(false);
@@ -67,9 +60,10 @@ export default function CreatePokerGroupPage() {
 
   const addPlayer = () => {
     if (newPlayerName.trim() && players.length < formData.maxPlayers) {
+      const trimmedName = newPlayerName.trim();
       const newPlayer: PokerPlayer = {
         id: generateId(),
-        name: newPlayerName.trim(),
+        name: trimmedName,
         isCreator: false
       };
       
@@ -87,12 +81,7 @@ export default function CreatePokerGroupPage() {
   };
 
   const removePlayer = (playerId: string) => {
-    setPlayers(prev => prev.filter(p => {
-      // 保留创建者，不允许删除
-      if (p.isCreator) return true;
-      // 删除指定的非创建者玩家
-      return p.id !== playerId;
-    }));
+    setPlayers(prev => prev.filter(p => p.id !== playerId));
   };
 
   const updatePlayerName = (playerId: string, newName: string) => {
@@ -116,11 +105,11 @@ export default function CreatePokerGroupPage() {
   // 快速添加预设玩家
   const addPresetPlayers = () => {
     // 使用Mock数据，不调用接口
-    const presetNames = ['Tomas', 'Sean', 'Iolo', 'Flynn', 'Jeff', 'David', 'Ray', 'GOGO', 'Yang'];
+    const presetNames = ['Wade', 'Tomas', 'Sean', 'Iolo', 'Flynn', 'Jeff', 'David', 'Ray', 'GOGO', 'Yang', "Stave"];
     const currentCount = players.length;
     const maxToAdd = Math.min(presetNames.length, formData.maxPlayers - currentCount);
     
-    const newPlayers: PokerPlayer[] = presetNames.slice(0, maxToAdd).map(name => ({
+    const newPlayers: PokerPlayer[] = presetNames.slice(0, maxToAdd).map((name) => ({
       id: generateId(),
       name,
       isCreator: false
@@ -408,7 +397,7 @@ export default function CreatePokerGroupPage() {
                 onChange={(e) => handleInputChange('maxPlayers', parseInt(e.target.value))}
                 className="ak-w-full ak-px-3 ak-py-2 ak-border ak-border-amber-500/30 ak-bg-gray-700 ak-text-amber-200 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-amber-400 ak-focus:border-amber-400"
               >
-                {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(num => (
                   <option key={num} value={num} className="ak-bg-gray-700 ak-text-amber-200">{num}人游戏</option>
                 ))}
               </select>
@@ -508,28 +497,18 @@ export default function CreatePokerGroupPage() {
             {players.map((player) => (
               <div
                 key={player.id}
-                className={`ak-flex ak-items-center ak-justify-between ak-p-2 sm:ak-p-3 ak-rounded-lg ak-border ak-transition-colors ${
-                  player.isCreator 
-                    ? 'ak-border-blue-500/40 ak-bg-gradient-to-br ak-from-blue-600/20 ak-to-blue-700/20' 
-                    : 'ak-border-gray-600/40 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-hover:ak-from-gray-600 ak-hover:ak-to-gray-500'
-                }`}
+                className="ak-flex ak-items-center ak-justify-between ak-p-2 sm:ak-p-3 ak-rounded-lg ak-border ak-transition-colors ak-border-gray-600/40 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-hover:ak-from-gray-600 ak-hover:ak-to-gray-500"
               >
                 <div className="ak-flex ak-items-center ak-space-x-2 ak-min-w-0 ak-flex-1">
                   <span className="ak-text-sm ak-font-medium ak-flex-shrink-0">
-                    {player.isCreator ? '👑' : '🎭'}
+                    🎭
                   </span>
-                  {player.isCreator ? (
-                    <span className="ak-text-xs sm:ak-text-sm ak-font-medium ak-text-blue-300 ak-truncate">
-                      {player.name} (你)
-                    </span>
-                  ) : (
-                    <Input
-                      value={player.name}
-                      onChange={(e) => updatePlayerName(player.id, e.target.value)}
-                      className="ak-text-xs sm:ak-text-sm ak-border-0 ak-bg-transparent ak-text-gray-200 ak-p-1 ak-focus:ak-bg-gray-600 ak-focus:ak-border ak-focus:ak-border-gray-400 ak-min-w-0"
-                      maxLength={20}
-                    />
-                  )}
+                  <Input
+                    value={player.name}
+                    onChange={(e) => updatePlayerName(player.id, e.target.value)}
+                    className="ak-text-xs sm:ak-text-sm ak-border-0 ak-bg-transparent ak-text-gray-200 ak-p-1 ak-focus:ak-bg-gray-600 ak-focus:ak-border ak-focus:ak-border-gray-400 ak-min-w-0"
+                    maxLength={20}
+                  />
                 </div>
                 
                 <div className="ak-flex ak-items-center ak-space-x-1 sm:ak-space-x-2 ak-flex-shrink-0">
@@ -537,15 +516,13 @@ export default function CreatePokerGroupPage() {
                     <span className="ak-hidden sm:ak-inline">{formData.initialChips} 积分</span>
                     <span className="sm:ak-hidden">{formData.initialChips}</span>
                   </span>
-                  {!player.isCreator && (
-                    <button
-                      type="button"
-                      onClick={() => removePlayer(player.id)}
-                      className="ak-text-red-400 hover:ak-text-red-300 ak-text-sm ak-p-1 ak-min-h-[24px] ak-min-w-[24px] ak-flex ak-items-center ak-justify-center ak-rounded hover:ak-bg-red-500/20 ak-transition-colors"
-                    >
-                      ✕
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => removePlayer(player.id)}
+                    className="ak-text-red-400 hover:ak-text-red-300 ak-text-sm ak-p-1 ak-min-h-[24px] ak-min-w-[24px] ak-flex ak-items-center ak-justify-center ak-rounded hover:ak-bg-red-500/20 ak-transition-colors"
+                  >
+                    ✕
+                  </button>
                 </div>
               </div>
             ))}
