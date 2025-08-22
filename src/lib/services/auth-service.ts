@@ -289,7 +289,7 @@ class AuthService {
 
   // 监听认证状态变化
   onAuthStateChange(callback: (user: AuthUser | null) => void) {
-    return this.supabase.auth.onAuthStateChange(async (event, session) => {
+    return this.supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const user = await this.getCurrentUser()
         callback(user)
