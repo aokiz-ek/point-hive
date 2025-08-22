@@ -5,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Modal, FormItem, Select, InputNumber, TextArea } from '@/components/ui/modal';
-import { useAuth, useTransactions } from '@/lib/hooks';
-import { pokerService, type PokerPlayer } from '@/lib/services';
+// import { useAuth, useTransactions } from '@/lib/hooks';
+import { useTransactions } from '@/lib/hooks';
+import { localPokerService, type PokerPlayer } from '@/lib/services/local-poker-service';
 import { generateId } from '@/lib/utils/local-storage';
 import type { Transaction } from '@/lib/types';
 
@@ -15,22 +16,27 @@ import type { Transaction } from '@/lib/types';
 export default function PokerGroupPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
   const groupId = params.id as string;
+  
+  // Mock用户，避免登录依赖 - 使用useState确保稳定的引用
+  const [user] = useState(() => ({ 
+    id: 'mock-user-' + generateId(), 
+    nickname: 'Wade'
+  }));
   
   const [group, setGroup] = useState<any>(null);
   const [players, setPlayers] = useState<PokerPlayer[]>([]);
   const [loading, setLoading] = useState(false);
   const [gameStatus, setGameStatus] = useState<'active' | 'paused' | 'finished'>('active');
   
-  // 筹码转移相关状态
+  // 积分转移相关状态
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferFrom, setTransferFrom] = useState<string>('');
   const [transferTo, setTransferTo] = useState<string>('');
   const [transferAmount, setTransferAmount] = useState<number>(2000);
   const [transferReason, setTransferReason] = useState<string>('');
   
-  // 买入相关状态
+  // 积分买入相关状态
   const [showBuyInModal, setShowBuyInModal] = useState(false);
   const [buyInTo, setBuyInTo] = useState<string>('');
   const [buyInFrom, setBuyInFrom] = useState<string>('');
@@ -51,17 +57,18 @@ export default function PokerGroupPage() {
     const loadGroup = async () => {
       if (!user) return;
       
-      const result = await pokerService.getPokerGroup(groupId);
+      const result = await localPokerService.getPokerGroup(groupId);
       
       if (!result.success || !result.data) {
         console.error('获取扑克群组失败:', result.error);
-        router.push('/groups');
+        alert(`无法加载游戏数据: ${result.error || '群组不存在'}。请先创建一个游戏房间。`);
+        router.push('/groups/poker/create');
         return;
       }
       
       setGroup(result.data);
       
-      // 计算每个玩家的当前筹码
+      // 计算每个玩家的当前积分
       const pokerSettings = result.data.pokerSettings;
       if (pokerSettings?.playerNames) {
         await calculatePlayerChips(pokerSettings.playerNames);
@@ -74,12 +81,12 @@ export default function PokerGroupPage() {
   const calculatePlayerChips = async (playerNames: any[]) => {
     if (!user) return;
     
-    const result = await pokerService.calculatePlayerChips(groupId, playerNames, user.id);
+    const result = await localPokerService.calculatePlayerChips(groupId, playerNames, user.id);
     
     if (result.success && result.data) {
       setPlayers(result.data);
       
-      // 筹码守恒验证
+      // 积分守恒验证
       const playersData = result.data as PokerPlayer[];
       const totalCurrentChips = playersData.reduce((sum, p) => sum + p.currentChips, 0);
       const totalSystemBought = playersData.reduce((sum, p) => sum + p.totalBought, 0);
@@ -87,7 +94,7 @@ export default function PokerGroupPage() {
       // 在开发环境中验证筹码守恒
       if (process.env.NODE_ENV === 'development') {
         if (totalCurrentChips !== totalSystemBought) {
-          console.warn('筹码不守恒警告:', {
+          console.warn('积分不守恒警告:', {
             totalCurrentChips,
             totalSystemBought,
             difference: totalCurrentChips - totalSystemBought
@@ -125,11 +132,11 @@ export default function PokerGroupPage() {
     
     switch (scenario) {
       case 'win_lose':
-        // Wade赢得Tomas 2000筹码
-        createTestTransaction(tomasId, wadeId, 2000, '测试：Wade赢得筹码', 'win');
+        // Wade赢得Tomas 2000积分
+        createTestTransaction(tomasId, wadeId, 2000, '测试：Wade赢得积分', 'win');
         setTimeout(() => {
-          // Wade借出1000筹码给Tomas
-          createTestTransaction(wadeId, tomasId, 1000, '测试：Wade借出筹码', 'loan');
+          // Wade借出1000积分给Tomas
+          createTestTransaction(wadeId, tomasId, 1000, '测试：Wade借出积分', 'loan');
         }, 500);
         break;
         
@@ -170,7 +177,7 @@ export default function PokerGroupPage() {
   };
 
   const createTestTransaction = async (fromUserId: string, toUserId: string, amount: number, description: string, transferType: 'win' | 'loan') => {
-    const result = await pokerService.createChipTransfer(
+    const result = await localPokerService.createChipTransfer(
       groupId,
       fromUserId,
       toUserId,
@@ -180,7 +187,7 @@ export default function PokerGroupPage() {
     );
     
     if (result.success) {
-      // 重新计算玩家筹码
+      // 重新计算玩家积分
       if (group?.pokerSettings?.playerNames) {
         await calculatePlayerChips(group.pokerSettings.playerNames);
       }
@@ -193,7 +200,7 @@ export default function PokerGroupPage() {
     const totalCurrent = players.reduce((sum, p) => sum + p.currentChips, 0);
     const totalBought = players.reduce((sum, p) => sum + p.totalBought, 0);
     
-    const transactionsResult = await pokerService.getPokerTransactions(groupId);
+    const transactionsResult = await localPokerService.getPokerTransactions(groupId);
     const allTransactions = transactionsResult.success ? transactionsResult.data : [];
     
     const result = {
@@ -206,7 +213,7 @@ export default function PokerGroupPage() {
       transferTransactions: allTransactions.filter((t: any) => t.type === 'transfer').length
     };
     
-    alert(`筹码守恒验证结果:\n${JSON.stringify(result, null, 2)}`);
+    alert(`积分守恒验证结果:\n${JSON.stringify(result, null, 2)}`);
   };
 
   const showDetailedStats = () => {
@@ -224,7 +231,7 @@ export default function PokerGroupPage() {
   };
 
   const exportTestData = async () => {
-    const transactionsResult = await pokerService.getPokerTransactions(groupId);
+    const transactionsResult = await localPokerService.getPokerTransactions(groupId);
     const allTransactions = transactionsResult.success ? transactionsResult.data : [];
     
     const exportData = {
@@ -271,26 +278,26 @@ export default function PokerGroupPage() {
       }
       
       if (fromPlayerData.currentChips < amount) {
-        throw new Error('筹码不足');
+        throw new Error('积分不足');
       }
       
       const fromUserId = fromPlayerData.isCreator ? user.id : (fromPlayerData.userId || fromPlayer);
       const toUserId = toPlayerData.isCreator ? user.id : (toPlayerData.userId || toPlayer);
       
-      const result = await pokerService.createChipTransfer(
+      const result = await localPokerService.createChipTransfer(
         groupId,
         fromUserId,
         toUserId,
         amount,
-        reason || `筹码借出: ${fromPlayerData.name} 借给 ${toPlayerData.name}`,
+        reason || `积分借出: ${fromPlayerData.name} 借给 ${toPlayerData.name}`,
         'loan'
       );
       
       if (!result.success) {
-        throw new Error(result.error || '筹码转移失败');
+        throw new Error(result.error || '积分转移失败');
       }
       
-      // 重新计算玩家筹码
+      // 重新计算玩家积分
       if (group?.pokerSettings?.playerNames) {
         await calculatePlayerChips(group.pokerSettings.playerNames);
       }
@@ -300,8 +307,8 @@ export default function PokerGroupPage() {
       resetTransferForm();
       
     } catch (error) {
-      console.error('筹码转移失败:', error);
-      alert('筹码转移失败: ' + (error as Error).message);
+      console.error('积分转移失败:', error);
+      alert('积分转移失败: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -335,7 +342,7 @@ export default function PokerGroupPage() {
       const fromUserId = fromPlayer.isCreator ? user.id : (fromPlayer.userId || fromPlayerId);
       const toUserId = toPlayer.isCreator ? user.id : (toPlayer.userId || toPlayerId);
       
-      const result = await pokerService.createChipTransfer(
+      const result = await localPokerService.createChipTransfer(
         groupId,
         fromUserId,
         toUserId,
@@ -345,10 +352,10 @@ export default function PokerGroupPage() {
       );
       
       if (!result.success) {
-        throw new Error(result.error || '筹码转移失败');
+        throw new Error(result.error || '积分转移失败');
       }
       
-      // 重新计算玩家筹码
+      // 重新计算玩家积分
       if (group?.pokerSettings?.playerNames) {
         await calculatePlayerChips(group.pokerSettings.playerNames);
       }
@@ -358,8 +365,8 @@ export default function PokerGroupPage() {
       resetBuyInForm();
       
     } catch (error) {
-      console.error('筹码转移失败:', error);
-      alert('筹码转移失败: ' + (error as Error).message);
+      console.error('积分转移失败:', error);
+      alert('积分转移失败: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -374,7 +381,7 @@ export default function PokerGroupPage() {
 
   // 计算玩家对战统计（只统计赢得交易，忽略借出交易）
   const calculatePlayerVsPlayerStats = async () => {
-    const transactionsResult = await pokerService.getPokerTransactions(groupId);
+    const transactionsResult = await localPokerService.getPokerTransactions(groupId);
     const allTransactions = transactionsResult.success ? transactionsResult.data : [];
     const winTransactions = allTransactions.filter((t: any) => 
       t.type === 'transfer' && 
@@ -406,7 +413,7 @@ export default function PokerGroupPage() {
       const toId = transaction.toUserId;
       
       if (playerVsPlayer[fromId] && playerVsPlayer[fromId][toId] !== undefined) {
-        playerVsPlayer[fromId][toId] += transaction.amount;
+        playerVsPlayer[fromId]![toId] += transaction.amount;
       }
     });
     
@@ -468,7 +475,7 @@ export default function PokerGroupPage() {
     const playerVsPlayerStats = await calculatePlayerVsPlayerStats();
     
     // 获取所有交易记录用于结算显示
-    const transactionsResult = await pokerService.getPokerTransactions(groupId);
+    const transactionsResult = await localPokerService.getPokerTransactions(groupId);
     if (transactionsResult.success) {
       setAllTransactions(transactionsResult.data);
     }
@@ -490,7 +497,7 @@ export default function PokerGroupPage() {
     await calculateSettlement();
     
     // 更新群组状态为已结束
-    const result = await pokerService.finishPokerGame(groupId);
+    const result = await localPokerService.finishPokerGame(groupId);
     if (!result.success) {
       console.error('结束游戏失败:', result.error);
     }
@@ -520,7 +527,7 @@ export default function PokerGroupPage() {
             <h1 className="ak-text-2xl ak-font-bold ak-text-gray-900">{group.name}</h1>
             <p className="ak-text-gray-600">{group.description}</p>
             <div className="ak-flex ak-items-center ak-space-x-4 ak-mt-2 ak-text-sm ak-text-gray-500">
-              <span>🎲 {pokerSettings?.gameType === 'cash' ? '现金桌' : '锦标赛'}</span>
+              <span>🎲 {pokerSettings?.gameType === 'points' ? '积分模式' : '锦标赛'}</span>
               <span>🃏 盲注: {pokerSettings?.smallBlind}/{pokerSettings?.bigBlind}</span>
               <span>👥 {players.length} 玩家</span>
               <span className={`ak-px-2 ak-py-1 ak-rounded ak-text-xs ak-font-medium ${
@@ -535,7 +542,7 @@ export default function PokerGroupPage() {
           
           <div className="ak-grid ak-grid-cols-2 ak-gap-4 ak-text-center">
             <div>
-              <div className="ak-text-sm ak-text-gray-600 ak-mb-1">总筹码池</div>
+              <div className="ak-text-sm ak-text-gray-600 ak-mb-1">总积分池</div>
               <div className={`ak-text-xl ak-font-bold ${isChipsConserved ? 'ak-text-blue-600' : 'ak-text-red-600'}`}>
                 {totalChips.toLocaleString()}
               </div>
@@ -545,7 +552,7 @@ export default function PokerGroupPage() {
             </div>
             
             <div>
-              <div className="ak-text-sm ak-text-gray-600 ak-mb-1">筹码流动</div>
+              <div className="ak-text-sm ak-text-gray-600 ak-mb-1">积分流动</div>
               <div className="ak-text-xs ak-text-gray-500 ak-space-y-1">
                 <div>转移: {totalWon.toLocaleString()}</div>
                 <div>守恒: {isChipsConserved ? '✅' : '❌'}</div>
@@ -560,7 +567,7 @@ export default function PokerGroupPage() {
             disabled={gameStatus === 'finished'}
             size="sm"
           >
-            💸 转移筹码
+            💸 转移积分
           </Button>
           <Button
             variant="outline"
@@ -692,16 +699,16 @@ export default function PokerGroupPage() {
       {/* 游戏规则说明 */}
       <Card className="ak-p-4 ak-bg-gradient-to-r ak-from-blue-50 ak-to-indigo-50 ak-border-blue-200">
         <h3 className="ak-text-sm ak-font-semibold ak-text-blue-800 ak-mb-2 ak-flex ak-items-center ak-gap-2">
-          📋 筹码操作规则
+          📋 积分操作规则
         </h3>
         <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 ak-gap-4 ak-text-xs ak-text-blue-700">
           <div className="ak-flex ak-items-center ak-space-x-2">
             <span className="ak-bg-green-100 ak-text-green-700 ak-px-2 ak-py-1 ak-rounded">💰 获取</span>
-            <span>= 赢得筹码（计入净利润）</span>
+            <span>= 赢得积分（计入净利润）</span>
           </div>
           <div className="ak-flex ak-items-center ak-space-x-2">
             <span className="ak-bg-orange-100 ak-text-orange-700 ak-px-2 ak-py-1 ak-rounded">📤 转出</span>
-            <span>= 借出筹码（不影响净利润）</span>
+            <span>= 借出积分（不影响净利润）</span>
           </div>
           <div className="ak-col-span-1 md:ak-col-span-2 ak-text-blue-600 ak-bg-blue-100 ak-px-3 ak-py-2 ak-rounded ak-text-center">
             <strong>示例：</strong> Wade赢得Tomas 2000 → Wade净利润+2000；Wade借出给Tomas 2000 → Wade净利润仍为+2000（借出不算输掉）

@@ -1,7 +1,5 @@
-import { createClient } from '@/lib/supabase/client'
-import { groupService } from './group-service'
-import { transactionService } from './transaction-service'
-import type { CreateGroupData, Transaction } from '@/lib/types'
+import { LocalStorage, generateId, formatDateTime } from '@/lib/utils/local-storage'
+import type { Group, Transaction } from '@/lib/types'
 
 export interface PokerPlayer {
   id: string
@@ -31,28 +29,15 @@ export interface PokerGameSettings {
   gameStatus: 'active' | 'paused' | 'finished'
 }
 
-export interface PokerGroup {
-  id: string
-  name: string
-  description: string
-  ownerId: string
-  inviteCode: string
-  pokerSettings: PokerGameSettings
-  createdAt: string
-  updatedAt: string
-}
-
 export interface PokerServiceResponse {
   success: boolean
   data?: any
   error?: string
 }
 
-class PokerService {
-  private supabase = createClient()
-
+class LocalPokerService {
   /**
-   * 创建游戏群组
+   * 创建游戏群组 (localStorage版本)
    */
   async createPokerGroup(
     ownerId: string,
@@ -74,13 +59,22 @@ class PokerService {
     }>
   ): Promise<PokerServiceResponse> {
     try {
+      // 生成群组ID
+      const groupId = generateId()
+      const inviteCode = Math.random().toString(36).substr(2, 8).toUpperCase()
+      const now = new Date().toISOString()
+
       // 1. 创建群组基础数据
-      const groupData: CreateGroupData = {
+      const group: Group = {
+        id: groupId,
         name: `🎯 ${formData.tableName}`,
         description: `积分游戏 ${formData.gameType === 'points' ? '积分模式' : '锦标赛'} - ${formData.smallBlind}/${formData.bigBlind} 盲注`,
-        type: 'custom',
+        ownerId,
+        adminIds: [ownerId],
+        memberIds: [ownerId],
+        inviteCode,
         maxMembers: formData.maxPlayers,
-        initialPoints: formData.initialChips,
+        totalPoints: formData.initialChips * players.length,
         rules: {
           maxTransferAmount: formData.initialChips * 2,
           maxPendingAmount: formData.initialChips * 3,
@@ -92,19 +86,29 @@ class PokerService {
           allowPartialReturn: true,
           dailyTransferLimit: formData.initialChips * 10,
           memberJoinApproval: false
-        }
+        },
+        settings: {
+          autoAcceptTransfers: true,
+          notificationSound: true,
+          showMemberActivity: true,
+          allowMemberInvite: false,
+          requireVerifiedEmail: false,
+          requireVerifiedPhone: false,
+          enableCreditLimit: false,
+          enableTimeLimit: false,
+          pointsPerMember: formData.initialChips
+        },
+        status: 'active',
+        tags: ['poker', 'gaming', formData.gameType],
+        isPublic: false,
+        createdAt: now,
+        updatedAt: now,
+        currentMembers: players.length,
+        isActive: true,
+        pointsBalance: formData.initialChips
       }
 
-      // 使用现有的 groupService 创建群组
-      const groupResult = await groupService.createGroup(groupData, ownerId)
-      
-      if (!groupResult.success || !groupResult.data) {
-        return { success: false, error: groupResult.error || '创建群组失败' }
-      }
-
-      const group = groupResult.data as any
-
-      // 2. 保存扑克专用设置到 groups 表的 metadata 字段
+      // 2. 创建扑克专用设置
       const pokerSettings: PokerGameSettings = {
         gameType: formData.gameType,
         smallBlind: formData.smallBlind,
@@ -117,42 +121,58 @@ class PokerService {
           isCreator: p.isCreator,
           userId: p.isCreator ? ownerId : (p.userId || p.id)
         })),
-        sessionStartTime: new Date().toISOString(),
+        sessionStartTime: now,
         gameStatus: 'active'
       }
 
-      // 更新群组元数据
-      await this.updatePokerSettings(group.id, pokerSettings)
-
-      // 3. 为每个玩家创建初始积分交易记录
-      for (const player of players) {
-        // 使用特殊的系统 UUID 或 NULL
-        const systemUuid = '00000000-0000-0000-0000-000000000000'; // 特殊的系统 UUID
-        
-        await this.supabase
-          .from('transactions')
-          .insert({
-            from_user_id: systemUuid,
-            to_user_id: player.isCreator ? ownerId : (player.userId || player.id),
-            group_id: group.id,
-            amount: formData.initialChips,
-            description: `积分游戏初始积分 - 玩家: ${player.name}`,
-            type: 'system',
-            status: 'completed',
-            completed_at: new Date().toISOString(),
-            metadata: {
-              tags: ['poker', 'initial_chips', formData.gameType],
-              priority: 'normal',
-              playerName: player.name,
-              isCreator: player.isCreator || false
-            }
-          })
+      // 将poker设置存储到group metadata中
+      const groupWithMetadata = {
+        ...group,
+        metadata: {
+          pokerSettings
+        }
       }
+
+      // 3. 保存群组到localStorage
+      LocalStorage.addGroup(groupWithMetadata)
+
+      // 4. 为每个玩家创建初始积分交易记录
+      const transactions: Transaction[] = []
+      for (const player of players) {
+        const transactionId = generateId()
+        const systemUuid = '00000000-0000-0000-0000-000000000000' // 特殊的系统 UUID
+        
+        const transaction: Transaction = {
+          id: transactionId,
+          fromUserId: systemUuid,
+          toUserId: player.isCreator ? ownerId : (player.userId || player.id),
+          groupId: groupId,
+          amount: formData.initialChips,
+          description: `积分游戏初始积分 - 玩家: ${player.name}`,
+          type: 'system',
+          status: 'completed',
+          completedAt: now,
+          createdAt: now,
+          updatedAt: now,
+          metadata: {
+            tags: ['poker', 'initial_chips', formData.gameType],
+            priority: 'normal',
+            playerName: player.name,
+            isCreator: player.isCreator || false
+          }
+        }
+        
+        transactions.push(transaction)
+      }
+
+      // 保存交易记录到localStorage
+      const existingTransactions = LocalStorage.getTransactions()
+      LocalStorage.setTransactions([...existingTransactions, ...transactions])
 
       return {
         success: true,
         data: {
-          ...group,
+          ...groupWithMetadata,
           pokerSettings
         }
       }
@@ -166,31 +186,18 @@ class PokerService {
   }
 
   /**
-   * 获取扑克群组详情
+   * 获取扑克群组详情 (localStorage版本)
    */
   async getPokerGroup(groupId: string): Promise<PokerServiceResponse> {
     try {
-      // 获取群组基础信息
-      const groupResult = await groupService.getGroupById(groupId)
+      const groups = LocalStorage.getGroups()
+      const group = groups.find(g => g.id === groupId)
       
-      if (!groupResult.success || !groupResult.data) {
-        return { success: false, error: groupResult.error || '获取群组失败' }
+      if (!group) {
+        return { success: false, error: '群组不存在' }
       }
 
-      const group = groupResult.data as any
-
-      // 获取扑克专用设置
-      const { data: groupData, error } = await this.supabase
-        .from('groups')
-        .select('metadata')
-        .eq('id', groupId)
-        .single()
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-
-      const pokerSettings = groupData?.metadata?.pokerSettings
+      const pokerSettings = (group as any).metadata?.pokerSettings
 
       return {
         success: true,
@@ -208,34 +215,7 @@ class PokerService {
   }
 
   /**
-   * 更新扑克游戏设置
-   */
-  async updatePokerSettings(groupId: string, settings: PokerGameSettings): Promise<PokerServiceResponse> {
-    try {
-      const { error } = await this.supabase
-        .from('groups')
-        .update({
-          metadata: {
-            pokerSettings: settings
-          }
-        })
-        .eq('id', groupId)
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-
-      return { success: true }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : '更新扑克设置失败'
-      }
-    }
-  }
-
-  /**
-   * 创建积分转移交易
+   * 创建积分转移交易 (localStorage版本)
    */
   async createChipTransfer(
     groupId: string,
@@ -261,31 +241,29 @@ class PokerService {
         }
       }
 
-      // 直接调用 Supabase 插入交易
-      const { error } = await this.supabase
-        .from('transactions')
-        .insert({
-          from_user_id: fromUserId,
-          to_user_id: toUserId,
-          group_id: groupId,
-          amount,
-          description,
-          type: 'transfer',
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          metadata: {
-            tags: ['poker', 'chip_transfer', transferType],
-            priority: 'normal',
-            transferType
-          }
-        })
+      const transactionId = generateId()
+      const now = new Date().toISOString()
 
-      if (error) {
-        return {
-          success: false,
-          error: error.message
+      const transaction: Transaction = {
+        id: transactionId,
+        fromUserId,
+        toUserId,
+        groupId,
+        amount,
+        description,
+        type: 'transfer',
+        status: 'completed',
+        completedAt: now,
+        createdAt: now,
+        updatedAt: now,
+        metadata: {
+          tags: ['poker', 'chip_transfer', transferType],
+          priority: 'normal',
+          transferType
         }
       }
+
+      LocalStorage.addTransaction(transaction)
 
       return { success: true }
     } catch (error) {
@@ -297,41 +275,18 @@ class PokerService {
   }
 
   /**
-   * 获取群组的所有扑克交易记录
+   * 获取群组的所有扑克交易记录 (localStorage版本)
    */
   async getPokerTransactions(groupId: string): Promise<PokerServiceResponse> {
     try {
-      // 直接查询该群组的所有交易，而不使用 transactionService 避免用户ID问题
-      const { data, error } = await this.supabase
-        .from('transactions')
-        .select('*')
-        .eq('group_id', groupId)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-
-      // 转换数据格式
-      const transactions: Transaction[] = data.map(item => ({
-        id: item.id,
-        fromUserId: item.from_user_id,
-        toUserId: item.to_user_id,
-        groupId: item.group_id,
-        amount: item.amount,
-        description: item.description || '',
-        status: item.status,
-        type: item.type,
-        dueDate: item.due_date,
-        completedAt: item.completed_at,
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-        metadata: item.metadata || {}
-      }))
+      const allTransactions = LocalStorage.getTransactions()
+      const groupTransactions = allTransactions
+        .filter(t => t.groupId === groupId)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
       return {
         success: true,
-        data: transactions
+        data: groupTransactions
       }
     } catch (error) {
       return {
@@ -342,7 +297,7 @@ class PokerService {
   }
 
   /**
-   * 计算玩家当前积分状态
+   * 计算玩家当前积分状态 (localStorage版本)
    */
   async calculatePlayerChips(
     groupId: string,
@@ -436,18 +391,20 @@ class PokerService {
   }
 
   /**
-   * 结束扑克游戏
+   * 结束扑克游戏 (localStorage版本)
    */
   async finishPokerGame(groupId: string): Promise<PokerServiceResponse> {
     try {
-      // 获取当前设置
-      const groupResult = await this.getPokerGroup(groupId)
-      if (!groupResult.success) {
-        return groupResult
+      // 获取当前群组
+      const groups = LocalStorage.getGroups()
+      const groupIndex = groups.findIndex(g => g.id === groupId)
+      
+      if (groupIndex === -1) {
+        return { success: false, error: '群组不存在' }
       }
 
-      const group = groupResult.data
-      const pokerSettings = group.pokerSettings
+      const group = groups[groupIndex] as any
+      const pokerSettings = group.metadata?.pokerSettings
 
       if (pokerSettings) {
         // 更新游戏状态
@@ -456,14 +413,17 @@ class PokerService {
           gameStatus: 'finished' as const
         }
 
-        await this.updatePokerSettings(groupId, updatedSettings)
+        group.metadata.pokerSettings = updatedSettings
       }
 
       // 更新群组状态为已归档
-      await this.supabase
-        .from('groups')
-        .update({ is_active: false })
-        .eq('id', groupId)
+      group.status = 'archived'
+      group.isActive = false
+      group.updatedAt = new Date().toISOString()
+
+      // 保存更新后的群组
+      groups[groupIndex] = group
+      LocalStorage.setGroups(groups)
 
       return { success: true }
     } catch (error) {
@@ -473,80 +433,6 @@ class PokerService {
       }
     }
   }
-
-  /**
-   * 获取预设扑克玩家列表
-   */
-  async getPresetPlayers(): Promise<PokerServiceResponse> {
-    try {
-      const { data, error } = await this.supabase
-        .from('users')
-        .select('id, username, full_name, credit_score')
-        .gte('id', '10000000-0000-0000-0000-000000000000')
-        .lt('id', '10000001-0000-0000-0000-000000000000')
-        .order('username')
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-
-      const presetPlayers = data.map(user => ({
-        id: user.id,
-        name: user.username,
-        fullName: user.full_name,
-        creditScore: user.credit_score,
-        isCreator: false,
-        userId: user.id
-      }))
-
-      return {
-        success: true,
-        data: presetPlayers
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : '获取预设玩家失败'
-      }
-    }
-  }
-
-  /**
-   * 获取扑克游戏统计数据
-   */
-  async getPokerStats(groupId: string): Promise<PokerServiceResponse> {
-    try {
-      const transactionsResult = await this.getPokerTransactions(groupId)
-      
-      if (!transactionsResult.success) {
-        return transactionsResult
-      }
-
-      const transactions = transactionsResult.data as Transaction[]
-      
-      const stats = {
-        totalTransactions: transactions.length,
-        systemTransactions: transactions.filter(t => t.type === 'system').length,
-        transferTransactions: transactions.filter(t => t.type === 'transfer').length,
-        totalChips: transactions
-          .filter(t => t.type === 'system')
-          .reduce((sum, t) => sum + t.amount, 0),
-        totalTransferred: transactions
-          .filter(t => t.type === 'transfer')
-          .reduce((sum, t) => sum + t.amount, 0)
-      }
-
-      return {
-        success: true,
-        data: stats
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : '获取扑克统计失败'
-      }
-    }
-  }
 }
 
-export const pokerService = new PokerService()
+export const localPokerService = new LocalPokerService()

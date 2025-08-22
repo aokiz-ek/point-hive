@@ -3,8 +3,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Header } from './header';
-import { Sidebar } from './sidebar';
-import { BottomNav } from './bottom-nav';
 
 interface ResponsiveLayoutProps {
   children: React.ReactNode;
@@ -17,74 +15,21 @@ interface ResponsiveLayoutProps {
 export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   children,
   className,
-  showSidebar = true,
-  showBottomNav = true,
+  showSidebar = false, // 默认不显示侧边栏
+  showBottomNav = false, // 默认不显示底部导航
   showHeader = true,
 }) => {
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  // 检测屏幕尺寸
-  React.useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-
-    return () => {
-      window.removeEventListener('resize', checkIsMobile);
-    };
-  }, []);
-
-  // 在移动端路由变化时关闭侧边栏
-  React.useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [isMobile]);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   return (
     <div className="ak-min-h-screen ak-bg-background">
       {/* 头部 */}
-      {showHeader && (
-        <Header
-          onMenuClick={toggleSidebar}
-          showMobileMenu={showSidebar}
-        />
-      )}
+      {showHeader && <Header />}
 
-      <div className="ak-flex ak-h-[calc(100vh-3.5rem)]">
-        {/* 侧边栏 - 只在桌面端显示或移动端打开时显示 */}
-        {showSidebar && (
-          <Sidebar
-            isOpen={sidebarOpen || !isMobile}
-            onToggle={toggleSidebar}
-          />
-        )}
-
-        {/* 主内容区 */}
-        <main
-          className={cn(
-            'ak-flex-1 ak-overflow-auto ak-transition-all ak-duration-300',
-            showSidebar && !isMobile && sidebarOpen && 'lg:ak-ml-64',
-            showBottomNav && 'ak-mb-16 lg:ak-mb-0',
-            className
-          )}
-        >
-          <div className="ak-container ak-mx-auto ak-p-4 ak-space-y-6">
-            {children}
-          </div>
-        </main>
-      </div>
-
-      {/* 底部导航 - 只在移动端显示 */}
-      {showBottomNav && <BottomNav />}
+      {/* 主内容区 */}
+      <main className={cn('ak-min-h-[calc(100vh-3.5rem)] ak-overflow-auto', className)}>
+        <div className="ak-container ak-mx-auto ak-p-4 ak-space-y-6">
+          {children}
+        </div>
+      </main>
     </div>
   );
 };

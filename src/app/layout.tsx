@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from '@/lib/providers';
 import { AuthProvider } from '@/components/auth/auth-provider';
+import { StorageInitializer } from '@/components/storage-initializer';
 import '@/styles/globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <AuthProvider>
+            <StorageInitializer />
             {children}
           </AuthProvider>
         </Providers>

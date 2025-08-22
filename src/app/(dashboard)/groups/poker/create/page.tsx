@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/lib/hooks';
-import { pokerService } from '@/lib/services';
+// import { useAuth } from '@/lib/hooks';
+import { localPokerService } from '@/lib/services/local-poker-service';
 import { generateId } from '@/lib/utils/local-storage';
 
 interface PokerPlayer {
@@ -20,27 +20,31 @@ interface PokerPlayer {
 
 export default function CreatePokerGroupPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  // Mock用户，避免登录依赖
+  const user = { 
+    id: 'mock-user-' + generateId(), 
+    nickname: 'Wade'
+  };
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  // DZ扑克专用表单状态
+  // 游戏专用表单状态
   const [formData, setFormData] = useState({
     tableName: '',
     initialChips: 2000,
     smallBlind: 10,
     bigBlind: 20,
     maxPlayers: 9,
-    gameType: 'cash' as 'cash' | 'tournament'
+    gameType: 'points' as 'points' | 'tournament'
   });
 
   // 玩家管理
   const [players, setPlayers] = useState<PokerPlayer[]>([
     {
       id: generateId(),
-      name: user?.nickname || '我',
+      name: user.nickname || '我',
       isCreator: true,
-      userId: user?.id
+      userId: user.id
     }
   ]);
   const [newPlayerName, setNewPlayerName] = useState('');
@@ -110,50 +114,19 @@ export default function CreatePokerGroupPage() {
   }, []); // 空依赖数组，只在组件挂载时执行一次
 
   // 快速添加预设玩家
-  const addPresetPlayers = async () => {
-    setLoading(true);
+  const addPresetPlayers = () => {
+    // 使用Mock数据，不调用接口
+    const presetNames = ['Tomas', 'Sean', 'Iolo', 'Flynn', 'Jeff', 'David', 'Ray', 'GOGO', 'Yang'];
+    const currentCount = players.length;
+    const maxToAdd = Math.min(presetNames.length, formData.maxPlayers - currentCount);
     
-    try {
-      // 从数据库获取预设玩家
-      const result = await pokerService.getPresetPlayers();
-      
-      if (!result.success || !result.data) {
-        console.error('获取预设玩家失败:', result.error);
-        // 如果数据库获取失败，使用原有的临时玩家逻辑
-        const presetNames = ['Tomas', 'Sean', 'Iolo', 'Flynn', 'Jeff', 'David', 'Ray', 'GOGO', 'Yang'];
-        const currentCount = players.length;
-        const maxToAdd = Math.min(presetNames.length, formData.maxPlayers - currentCount);
-        
-        const newPlayers: PokerPlayer[] = presetNames.slice(0, maxToAdd).map(name => ({
-          id: generateId(),
-          name,
-          isCreator: false
-        }));
-        
-        setPlayers(prev => [...prev, ...newPlayers]);
-        return;
-      }
-
-      const presetPlayers = result.data as any[];
-      const currentCount = players.length;
-      const maxToAdd = Math.min(presetPlayers.length, formData.maxPlayers - currentCount);
-      
-      const newPlayers: PokerPlayer[] = presetPlayers.slice(0, maxToAdd).map(player => ({
-        id: player.id,
-        name: player.name,
-        isCreator: false,
-        userId: player.userId,
-        fullName: player.fullName,
-        creditScore: player.creditScore
-      }));
-      
-      setPlayers(prev => [...prev, ...newPlayers]);
-      
-    } catch (error) {
-      console.error('添加预设玩家失败:', error);
-    } finally {
-      setLoading(false);
-    }
+    const newPlayers: PokerPlayer[] = presetNames.slice(0, maxToAdd).map(name => ({
+      id: generateId(),
+      name,
+      isCreator: false
+    }));
+    
+    setPlayers(prev => [...prev, ...newPlayers]);
   };
 
   // AI自动命名函数
@@ -181,57 +154,57 @@ export default function CreatePokerGroupPage() {
     const gameIntensity = intensity > 0.05 ? '激战' :
                          intensity > 0.025 ? '对决' : '温和';
     
-    // 桌子规模
-    const tableSize = formData.maxPlayers <= 4 ? '紧桌' :
+    // 房间规模
+    const tableSize = formData.maxPlayers <= 4 ? '小房间' :
                       formData.maxPlayers <= 6 ? '标准' :
-                      formData.maxPlayers <= 8 ? '大桌' : '超级';
+                      formData.maxPlayers <= 8 ? '大房间' : '超级';
     
     // 游戏类型风格
-    const gameStyle = formData.gameType === 'cash' ? '现金' : '锦标赛';
+    const gameStyle = formData.gameType === 'points' ? '积分' : '锦标赛';
     
     // 创意名称模板库
     const nameTemplates = [
       // 经典风格
-      `${timeOfDay}${gameIntensity}桌`,
+      `${timeOfDay}${gameIntensity}场`,
       `${tableSize}${gameStyle}局`,
       `${formData.smallBlind}/${formData.bigBlind}赛场`,
       
       // 文艺风格
-      `${timeOfDay}筹码传说`,
+      `${timeOfDay}积分传说`,
       `${gameIntensity}者联盟`,
-      `${tableSize}牌手聚会`,
+      `${tableSize}玩家聚会`,
       
       // 趣味风格
       `${timeOfDay}猎鲨行动`,
-      `${gameIntensity}筹码工厂`,
-      `${tableSize}德扑风云`,
+      `${gameIntensity}积分工厂`,
+      `${tableSize}积分风云`,
       
       // 专业风格
-      `${formData.initialChips}筹码战局`,
+      `${formData.initialChips}积分战局`,
       `${formData.maxPlayers}人精英赛`,
       `盲注${formData.bigBlind}竞技场`,
       
       // 创意组合
       `${timeOfDay}${tableSize}传奇`,
-      `${gameIntensity}筹码帝国`,
+      `${gameIntensity}积分帝国`,
       `${gameStyle}王者之战`,
       
       // 特色名称
-      '德扑梦工厂',
-      '筹码收割机',
-      '牌桌风暴',
-      '全压传说',
-      '河牌英雄',
-      '底牌猎人',
-      '翻牌大师',
-      '转牌战神',
-      '筹码魔术师',
-      '德扑骑士团',
+      '积分梦工厂',
+      '积分收割机',
+      '积分风暴',
+      '积分传说',
+      '积分英雄',
+      '积分猎人',
+      '积分大师',
+      '积分战神',
+      '积分魔术师',
+      '积分骑士团',
       
       // 时间特色
-      `${timeOfDay}筹码猎手`,
-      `${timeOfDay}牌桌征服者`,
-      `${timeOfDay}德扑风暴`,
+      `${timeOfDay}积分猎手`,
+      `${timeOfDay}积分征服者`,
+      `${timeOfDay}积分风暴`,
       
       // 盲注特色
       `${formData.smallBlind}起步传奇`,
@@ -241,11 +214,11 @@ export default function CreatePokerGroupPage() {
       // 人数特色
       `${formData.maxPlayers}剑客决斗`,
       `${formData.maxPlayers}王者争霸`,
-      `${formData.maxPlayers}人筹码大战`,
+      `${formData.maxPlayers}人积分大战`,
       
       // 筹码特色
       `${formData.initialChips}起家致富`,
-      `${formData.initialChips}筹码帝国`,
+      `${formData.initialChips}积分帝国`,
       `${formData.initialChips}传奇之路`
     ];
     
@@ -258,11 +231,11 @@ export default function CreatePokerGroupPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.tableName.trim()) {
-      newErrors.tableName = '牌桌名称不能为空';
+      newErrors.tableName = '房间名称不能为空';
     }
 
     if (formData.initialChips < 100 || formData.initialChips > 100000) {
-      newErrors.initialChips = '初始筹码必须在100-100000之间';
+      newErrors.initialChips = '初始积分必须在100-100000之间';
     }
 
     if (formData.smallBlind < 1 || formData.smallBlind >= formData.bigBlind) {
@@ -294,8 +267,8 @@ export default function CreatePokerGroupPage() {
     setLoading(true);
 
     try {
-      // 使用 pokerService 创建扑克群组
-      const result = await pokerService.createPokerGroup(user.id, formData, players);
+      // 使用 localStorage 创建扑克群组
+      const result = await localPokerService.createPokerGroup(user.id, formData, players);
       
       if (!result.success) {
         setErrors({ submit: result.error || '创建失败，请重试' });
@@ -306,7 +279,7 @@ export default function CreatePokerGroupPage() {
       router.push(`/groups/poker/${result.data.id}`);
       
     } catch (error) {
-      console.error('创建DZ扑克桌失败:', error);
+      console.error('创建积分游戏失败:', error);
       setErrors({ submit: '创建失败，请重试' });
     } finally {
       setLoading(false);
@@ -317,8 +290,8 @@ export default function CreatePokerGroupPage() {
     <div className="ak-space-y-6 ak-max-w-6xl ak-mx-auto">
       {/* 页面标题 */}
       <div className="ak-text-center">
-        <h1 className="ak-text-3xl ak-font-bold ak-text-gray-900 ak-mb-2">🃏 创建DZ扑克桌</h1>
-        <p className="ak-text-gray-600">快速设置DZ扑克游戏，管理玩家筹码</p>
+        <h1 className="ak-text-3xl ak-font-bold ak-text-gray-900 ak-mb-2">🎯 创建游戏房间</h1>
+        <p className="ak-text-gray-600">快速设置积分游戏，管理玩家积分</p>
       </div>
 
       <form onSubmit={handleSubmit} className="ak-space-y-6">
@@ -329,7 +302,7 @@ export default function CreatePokerGroupPage() {
           <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 ak-gap-6">
             <div>
               <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
-                牌桌名称 <span className="ak-text-red-500">*</span>
+                房间名称 <span className="ak-text-red-500">*</span>
               </label>
               <div className="ak-flex ak-space-x-2">
                 <Input
@@ -390,14 +363,14 @@ export default function CreatePokerGroupPage() {
                 onChange={(e) => handleInputChange('gameType', e.target.value)}
                 className="ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-300 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500"
               >
-                <option value="cash">现金桌</option>
+                <option value="points">积分模式</option>
                 <option value="tournament">锦标赛</option>
               </select>
             </div>
 
             <div>
               <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
-                初始筹码 <span className="ak-text-red-500">*</span>
+                初始积分 <span className="ak-text-red-500">*</span>
               </label>
               <Input
                 type="number"
@@ -422,7 +395,7 @@ export default function CreatePokerGroupPage() {
                 className="ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-300 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500"
               >
                 {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                  <option key={num} value={num}>{num}人桌</option>
+                  <option key={num} value={num}>{num}人游戏</option>
                 ))}
               </select>
             </div>
@@ -522,7 +495,7 @@ export default function CreatePokerGroupPage() {
                 
                 <div className="ak-flex ak-items-center ak-space-x-2">
                   <span className="ak-text-xs ak-text-gray-500">
-                    {formData.initialChips} 筹码
+                    {formData.initialChips} 积分
                   </span>
                   {!player.isCreator && (
                     <button
@@ -552,7 +525,7 @@ export default function CreatePokerGroupPage() {
               <div className="ak-text-lg ak-font-semibold ak-text-blue-700">{players.length}人</div>
             </div>
             <div>
-              <div className="ak-text-gray-600">总筹码池</div>
+              <div className="ak-text-gray-600">总积分池</div>
               <div className="ak-text-lg ak-font-semibold ak-text-blue-700">
                 {(formData.initialChips * players.length).toLocaleString()}
               </div>

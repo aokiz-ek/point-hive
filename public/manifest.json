@@ -29,7 +29,7 @@
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Point-Hive 桌面版界面"
+      "label": "Point-Hive 宽屏版界面"
     },
     {
       "src": "/screenshot-narrow.png", 
