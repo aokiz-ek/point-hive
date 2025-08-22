@@ -714,21 +714,24 @@ export default function PokerGroupPage() {
       </div>
 
       {/* 游戏规则说明 */}
-      <Card className="ak-p-4 ak-bg-gradient-to-r ak-from-blue-800/20 ak-to-indigo-800/20 ak-border-blue-500/30">
-        <h3 className="ak-text-sm ak-font-semibold ak-text-blue-300 ak-mb-2 ak-flex ak-items-center ak-gap-2">
-          📋 积分操作规则
-        </h3>
-        <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 ak-gap-4 ak-text-xs ak-text-blue-300">
-          <div className="ak-flex ak-items-center ak-space-x-2">
-            <span className="ak-bg-green-600/30 ak-text-green-300 ak-px-2 ak-py-1 ak-rounded ak-border ak-border-green-500/40">💰 获取</span>
-            <span>= 赢得积分（计入净利润）</span>
-          </div>
-          <div className="ak-flex ak-items-center ak-space-x-2">
-            <span className="ak-bg-orange-600/30 ak-text-orange-300 ak-px-2 ak-py-1 ak-rounded ak-border ak-border-orange-500/40">📤 转出</span>
-            <span>= 借出积分（不影响净利润）</span>
-          </div>
-          <div className="ak-col-span-1 md:ak-col-span-2 ak-text-blue-300 ak-bg-blue-600/20 ak-px-3 ak-py-2 ak-rounded ak-text-center ak-border ak-border-blue-500/40">
-            <strong>示例：</strong> Wade赢得Tomas 2000 → Wade净利润+2000；Wade借出给Tomas 2000 → Wade净利润仍为+2000（借出不算输掉）
+      <Card className="ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-border-amber-500/30 ak-shadow-lg ak-shadow-amber-500/5">
+        <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-amber-400/50 ak-to-transparent"></div>
+        <div className="ak-p-4 sm:ak-p-6">
+          <h3 className="ak-text-sm ak-font-semibold ak-text-amber-300 ak-mb-4 ak-flex ak-items-center ak-gap-2">
+            📋 积分操作规则
+          </h3>
+          <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 ak-gap-4 ak-text-xs ak-text-amber-200/80">
+            <div className="ak-flex ak-items-center ak-space-x-3">
+              <span className="ak-bg-green-500/20 ak-text-green-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-green-500/30">💰 获取</span>
+              <span>= 赢得积分（计入净利润）</span>
+            </div>
+            <div className="ak-flex ak-items-center ak-space-x-3">
+              <span className="ak-bg-amber-500/20 ak-text-amber-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-amber-500/30">📤 转出</span>
+              <span>= 借出积分（不影响净利润）</span>
+            </div>
+            <div className="ak-col-span-1 md:ak-col-span-2 ak-text-amber-200/80 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-px-4 ak-py-3 ak-rounded-lg ak-text-center ak-border ak-border-amber-500/20 ak-shadow-lg">
+              <strong className="ak-text-amber-300">💡 示例：</strong> Wade赢得Tomas 2000 → Wade净利润+2000；Wade借出给Tomas 2000 → Wade净利润仍为+2000（借出不算输掉）
+            </div>
           </div>
         </div>
       </Card>

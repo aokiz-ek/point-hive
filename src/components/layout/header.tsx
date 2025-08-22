@@ -32,16 +32,6 @@ export const Header: React.FC<HeaderProps> = () => {
 
   const userMenuItems: MenuProps['items'] = [
     {
-      key: 'profile',
-      icon: <User className="ak-w-4 ak-h-4 ak-text-amber-400" />,
-      label: (
-        <span className="ak-text-gray-200 ak-hover:text-amber-400 ak-transition-colors">
-          个人资料
-        </span>
-      ),
-      onClick: () => router.push('/profile'),
-    },
-    {
       key: 'config',
       icon: <Database className="ak-w-4 ak-h-4 ak-text-amber-400" />,
       label: (
@@ -50,16 +40,6 @@ export const Header: React.FC<HeaderProps> = () => {
         </span>
       ),
       onClick: () => router.push('/config'),
-    },
-    {
-      key: 'settings',
-      icon: <Settings className="ak-w-4 ak-h-4 ak-text-amber-400" />,
-      label: (
-        <span className="ak-text-gray-200 ak-hover:text-amber-400 ak-transition-colors">
-          系统设置
-        </span>
-      ),
-      onClick: () => router.push('/settings'),
     },
   ];
 

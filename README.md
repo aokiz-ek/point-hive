@@ -1,5 +1,7 @@
 # Point-Hive (积分蜂巢)
 
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_App-blue?style=for-the-badge&logo=vercel)](https://point-hive-9149.vercel.app/)
+
 [English](#english) | [中文](#中文)
 
 ---
@@ -9,6 +11,12 @@
 ### 项目介绍
 
 **Point-Hive**（积分蜂巢）是一个现代化的基于积分的借还管理系统，专为多人协作场景设计。系统支持实时积分转移、智能信用评分、群组管理等功能，特别适用于扑克游戏积分管理、团队协作积分分配等场景。
+
+### 🌐 在线演示
+
+🚀 **访问地址**: [https://point-hive-9149.vercel.app/](https://point-hive-9149.vercel.app/)
+
+> 💡 **提示**: 系统支持本地模式运行，无需任何配置即可体验所有功能。您可以直接创建扑克游戏房间并邀请朋友参与！
 
 ### 🎯 核心特性
 
@@ -221,6 +229,12 @@ chore: 构建过程或辅助工具的变动
 ### Project Introduction
 
 **Point-Hive** is a modern point-based lending and borrowing management system designed for multi-user collaborative scenarios. The system supports real-time point transfers, intelligent credit scoring, group management, and is particularly suitable for poker game point management and team collaboration scenarios.
+
+### 🌐 Live Demo
+
+🚀 **Visit**: [https://point-hive-9149.vercel.app/](https://point-hive-9149.vercel.app/)
+
+> 💡 **Tip**: The system supports local mode operation, allowing you to experience all features without any configuration. You can directly create poker game rooms and invite friends to join!
 
 ### 🎯 Core Features
 
