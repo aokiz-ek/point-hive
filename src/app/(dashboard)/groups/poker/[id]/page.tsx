@@ -519,17 +519,17 @@ export default function PokerGroupPage() {
   const isChipsConserved = totalChips === totalBought;
 
   return (
-    <div className="ak-space-y-6 ak-max-w-6xl ak-mx-auto">
+    <div className="ak-space-y-4 sm:ak-space-y-6 ak-max-w-6xl ak-mx-auto ak-px-4 sm:ak-px-6 lg:ak-px-8">
       {/* 游戏头部信息 */}
-      <Card className="ak-p-6 ak-bg-gradient-to-r ak-from-blue-50 ak-to-purple-50">
-        <div className="ak-flex ak-justify-between ak-items-start ak-mb-4">
-          <div>
-            <h1 className="ak-text-2xl ak-font-bold ak-text-gray-900">{group.name}</h1>
-            <p className="ak-text-gray-600">{group.description}</p>
-            <div className="ak-flex ak-items-center ak-space-x-4 ak-mt-2 ak-text-sm ak-text-gray-500">
-              <span>🎲 {pokerSettings?.gameType === 'points' ? '积分模式' : '锦标赛'}</span>
-              <span>🃏 盲注: {pokerSettings?.smallBlind}/{pokerSettings?.bigBlind}</span>
-              <span>👥 {players.length} 玩家</span>
+      <Card className="ak-p-4 sm:ak-p-6 ak-bg-gradient-to-r ak-from-blue-50 ak-to-purple-50">
+        <div className="ak-flex ak-flex-col lg:ak-flex-row lg:ak-justify-between lg:ak-items-start ak-space-y-4 lg:ak-space-y-0 ak-mb-4">
+          <div className="ak-flex-1">
+            <h1 className="ak-text-lg sm:ak-text-xl lg:ak-text-2xl ak-font-bold ak-text-gray-900 ak-mb-1">{group.name}</h1>
+            <p className="ak-text-sm sm:ak-text-base ak-text-gray-600 ak-mb-2">{group.description}</p>
+            <div className="ak-flex ak-flex-wrap ak-items-center ak-gap-2 sm:ak-gap-3 lg:ak-gap-4 ak-text-xs sm:ak-text-sm ak-text-gray-500">
+              <span className="ak-bg-white/50 ak-px-2 ak-py-1 ak-rounded">🎲 {pokerSettings?.gameType === 'points' ? '积分模式' : '锦标赛'}</span>
+              <span className="ak-bg-white/50 ak-px-2 ak-py-1 ak-rounded">🃏 {pokerSettings?.smallBlind}/{pokerSettings?.bigBlind}</span>
+              <span className="ak-bg-white/50 ak-px-2 ak-py-1 ak-rounded">👥 {players.length} 玩家</span>
               <span className={`ak-px-2 ak-py-1 ak-rounded ak-text-xs ak-font-medium ${
                 gameStatus === 'active' ? 'ak-bg-green-100 ak-text-green-800' :
                 gameStatus === 'paused' ? 'ak-bg-yellow-100 ak-text-yellow-800' :
@@ -540,10 +540,10 @@ export default function PokerGroupPage() {
             </div>
           </div>
           
-          <div className="ak-grid ak-grid-cols-2 ak-gap-4 ak-text-center">
-            <div>
-              <div className="ak-text-sm ak-text-gray-600 ak-mb-1">总积分池</div>
-              <div className={`ak-text-xl ak-font-bold ${isChipsConserved ? 'ak-text-blue-600' : 'ak-text-red-600'}`}>
+          <div className="ak-grid ak-grid-cols-2 ak-gap-3 sm:ak-gap-4 ak-text-center ak-min-w-0 lg:ak-min-w-[200px]">
+            <div className="ak-bg-white/50 ak-p-2 sm:ak-p-3 ak-rounded-lg">
+              <div className="ak-text-xs sm:ak-text-sm ak-text-gray-600 ak-mb-1">总积分池</div>
+              <div className={`ak-text-base sm:ak-text-lg lg:ak-text-xl ak-font-bold ${isChipsConserved ? 'ak-text-blue-600' : 'ak-text-red-600'}`}>
                 {totalChips.toLocaleString()}
               </div>
               <div className="ak-text-xs ak-text-gray-500">
@@ -551,8 +551,8 @@ export default function PokerGroupPage() {
               </div>
             </div>
             
-            <div>
-              <div className="ak-text-sm ak-text-gray-600 ak-mb-1">积分流动</div>
+            <div className="ak-bg-white/50 ak-p-2 sm:ak-p-3 ak-rounded-lg">
+              <div className="ak-text-xs sm:ak-text-sm ak-text-gray-600 ak-mb-1">积分流动</div>
               <div className="ak-text-xs ak-text-gray-500 ak-space-y-1">
                 <div>转移: {totalWon.toLocaleString()}</div>
                 <div>守恒: {isChipsConserved ? '✅' : '❌'}</div>
@@ -561,71 +561,79 @@ export default function PokerGroupPage() {
           </div>
         </div>
         
-        <div className="ak-flex ak-space-x-3">
+        <div className="ak-grid ak-grid-cols-2 sm:ak-flex sm:ak-flex-wrap ak-gap-2 sm:ak-gap-3">
           <Button
             onClick={() => setShowTransferModal(true)}
             disabled={gameStatus === 'finished'}
             size="sm"
+            className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
           >
-            💸 转移积分
+            <span className="ak-hidden sm:ak-inline">💸 转移积分</span>
+            <span className="sm:ak-hidden">💸 转移</span>
           </Button>
           <Button
             variant="outline"
             onClick={calculateSettlement}
             size="sm"
+            className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
           >
-            📊 查看结算
+            <span className="ak-hidden sm:ak-inline">📊 查看结算</span>
+            <span className="sm:ak-hidden">📊 结算</span>
           </Button>
           <Button
             variant="outline"
             onClick={() => setGameStatus(gameStatus === 'active' ? 'paused' : 'active')}
             disabled={gameStatus === 'finished'}
             size="sm"
+            className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
           >
-            {gameStatus === 'active' ? '⏸️ 暂停' : '▶️ 继续'}
+            <span className="ak-hidden sm:ak-inline">{gameStatus === 'active' ? '⏸️ 暂停' : '▶️ 继续'}</span>
+            <span className="sm:ak-hidden">{gameStatus === 'active' ? '⏸️' : '▶️'}</span>
           </Button>
           <Button
             variant="destructive"
             onClick={finishGame}
             disabled={gameStatus === 'finished'}
             size="sm"
+            className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
           >
-            🏁 结束游戏
+            <span className="ak-hidden sm:ak-inline">🏁 结束游戏</span>
+            <span className="sm:ak-hidden">🏁 结束</span>
           </Button>
         </div>
       </Card>
 
       {/* 玩家筹码显示 */}
-      <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 lg:ak-grid-cols-3 ak-gap-4">
+      <div className="ak-grid ak-grid-cols-1 sm:ak-grid-cols-2 lg:ak-grid-cols-3 ak-gap-3 sm:ak-gap-4">
         {players.map((player, index) => (
-          <Card key={player.id} className={`ak-p-4 ak-relative ${
+          <Card key={player.id} className={`ak-p-3 sm:ak-p-4 ak-relative ak-transition-shadow ak-hover:shadow-md ${
             index === 0 ? 'ak-border-yellow-300 ak-bg-yellow-50' : ''
           }`}>
             {index === 0 && (
-              <div className="ak-absolute ak-top-2 ak-right-2">
+              <div className="ak-absolute ak-top-2 ak-right-2 ak-text-sm">
                 👑
               </div>
             )}
             
             <div className="ak-flex ak-items-center ak-justify-between ak-mb-3">
-              <div className="ak-flex ak-items-center ak-space-x-2">
-                <span className="ak-text-lg">
+              <div className="ak-flex ak-items-center ak-space-x-2 ak-min-w-0 ak-flex-1">
+                <span className="ak-text-base sm:ak-text-lg ak-flex-shrink-0">
                   {player.isCreator ? '👑' : '🎭'}
                 </span>
-                <h3 className="ak-font-semibold ak-text-gray-900">
+                <h3 className="ak-text-sm sm:ak-text-base ak-font-semibold ak-text-gray-900 ak-truncate">
                   {player.name}
                   {player.isCreator && <span className="ak-text-xs ak-text-blue-500 ak-ml-1">(你)</span>}
                 </h3>
               </div>
-              <div className="ak-text-xs ak-px-2 ak-py-1 ak-rounded ak-bg-blue-100 ak-text-blue-800">
+              <div className="ak-text-xs ak-px-2 ak-py-1 ak-rounded ak-bg-blue-100 ak-text-blue-800 ak-flex-shrink-0">
                 在场
               </div>
             </div>
             
             <div className="ak-space-y-2">
-              <div className="ak-flex ak-justify-between">
-                <span className="ak-text-sm ak-text-gray-600">当前筹码</span>
-                <span className={`ak-font-bold ${
+              <div className="ak-flex ak-justify-between ak-items-center">
+                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-600">当前筹码</span>
+                <span className={`ak-text-sm sm:ak-text-base ak-font-bold ${
                   player.currentChips > pokerSettings?.initialChips ? 'ak-text-green-600' :
                   player.currentChips < pokerSettings?.initialChips ? 'ak-text-red-600' :
                   'ak-text-gray-900'
@@ -634,16 +642,16 @@ export default function PokerGroupPage() {
                 </span>
               </div>
               
-              <div className="ak-flex ak-justify-between">
-                <span className="ak-text-sm ak-text-gray-600">初始筹码</span>
-                <span className="ak-text-sm ak-text-gray-800">
+              <div className="ak-flex ak-justify-between ak-items-center">
+                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-600">初始筹码</span>
+                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-800">
                   {player.totalBought.toLocaleString()}
                 </span>
               </div>
               
-              <div className="ak-flex ak-justify-between">
-                <span className="ak-text-sm ak-text-gray-600">损益</span>
-                <span className={`ak-text-sm ak-font-medium ${
+              <div className="ak-flex ak-justify-between ak-items-center">
+                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-600">损益</span>
+                <span className={`ak-text-xs sm:ak-text-sm ak-font-medium ${
                   player.netResult > 0 ? 'ak-text-green-600' :
                   player.netResult < 0 ? 'ak-text-red-600' :
                   'ak-text-gray-600'
@@ -654,7 +662,7 @@ export default function PokerGroupPage() {
               
               <div className="ak-w-full ak-bg-gray-200 ak-rounded-full ak-h-2 ak-mt-2">
                 <div
-                  className={`ak-h-2 ak-rounded-full ${
+                  className={`ak-h-2 ak-rounded-full ak-transition-all ak-duration-300 ${
                     player.currentChips > pokerSettings?.initialChips ? 'ak-bg-green-500' :
                     player.currentChips < pokerSettings?.initialChips / 2 ? 'ak-bg-red-500' :
                     'ak-bg-yellow-500'
@@ -667,7 +675,7 @@ export default function PokerGroupPage() {
             </div>
             
             {gameStatus === 'active' && (
-              <div className="ak-flex ak-space-x-2 ak-mt-3">
+              <div className="ak-flex ak-gap-2 ak-mt-3">
                 <Button
                   size="sm"
                   variant="outline"
@@ -675,9 +683,10 @@ export default function PokerGroupPage() {
                     setBuyInTo(player.id);
                     setShowBuyInModal(true);
                   }}
-                  className="ak-flex-1 ak-text-xs ak-bg-green-50 ak-text-green-700 ak-border-green-200 hover:ak-bg-green-100"
+                  className="ak-flex-1 ak-text-xs ak-bg-green-50 ak-text-green-700 ak-border-green-200 hover:ak-bg-green-100 ak-min-h-[36px] ak-transition-colors"
                 >
-                  💰 赢得
+                  <span className="ak-hidden sm:ak-inline">💰 赢得</span>
+                  <span className="sm:ak-hidden">💰</span>
                 </Button>
                 <Button
                   size="sm"
@@ -686,9 +695,10 @@ export default function PokerGroupPage() {
                     setTransferFrom(player.id);
                     setShowTransferModal(true);
                   }}
-                  className="ak-flex-1 ak-text-xs ak-bg-orange-50 ak-text-orange-700 ak-border-orange-200 hover:ak-bg-orange-100"
+                  className="ak-flex-1 ak-text-xs ak-bg-orange-50 ak-text-orange-700 ak-border-orange-200 hover:ak-bg-orange-100 ak-min-h-[36px] ak-transition-colors"
                 >
-                  📤 借出
+                  <span className="ak-hidden sm:ak-inline">📤 借出</span>
+                  <span className="sm:ak-hidden">📤</span>
                 </Button>
               </div>
             )}
