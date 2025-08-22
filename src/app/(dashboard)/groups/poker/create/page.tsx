@@ -287,30 +287,41 @@ export default function CreatePokerGroupPage() {
   };
 
   return (
-    <div className="ak-space-y-4 sm:ak-space-y-6 ak-max-w-6xl ak-mx-auto ak-px-4 sm:ak-px-6 lg:ak-px-8">
-      {/* 页面标题 */}
-      <div className="ak-text-center ak-py-2 sm:ak-py-4">
-        <h1 className="ak-text-2xl sm:ak-text-3xl ak-font-bold ak-text-gray-900 ak-mb-2">🎯 创建游戏房间</h1>
-        <p className="ak-text-sm sm:ak-text-base ak-text-gray-600">快速设置积分游戏，管理玩家积分</p>
-      </div>
+    <div className="ak-min-h-screen ak-bg-gradient-to-br ak-from-gray-900 ak-via-gray-800 ak-to-gray-900">
+      <div className="ak-space-y-6 sm:ak-space-y-8 ak-max-w-6xl ak-mx-auto ak-px-4 sm:ak-px-6 lg:ak-px-8 ak-pt-8">
+        {/* 页面标题 */}
+        <div className="ak-text-center ak-py-4 sm:ak-py-6">
+          <div className="ak-relative ak-mb-4">
+            <h1 className="ak-text-3xl sm:ak-text-4xl ak-font-bold ak-bg-gradient-to-r ak-from-amber-300 ak-via-amber-400 ak-to-amber-500 ak-bg-clip-text ak-text-transparent ak-drop-shadow-2xl">
+              🎯 创建游戏房间
+            </h1>
+            <div className="ak-absolute ak-inset-0 ak-bg-amber-400 ak-opacity-10 ak-blur-2xl ak-rounded-full ak-scale-150"></div>
+          </div>
+          <p className="ak-text-base sm:ak-text-lg ak-text-amber-200/80 ak-font-medium">快速设置积分游戏，管理玩家积分</p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="ak-space-y-4 sm:ak-space-y-6">
-        {/* 基本设置 */}
-        <Card className="ak-p-4 sm:ak-p-6">
-          <h2 className="ak-text-lg sm:ak-text-xl ak-font-semibold ak-mb-3 sm:ak-mb-4">🎯 游戏设置</h2>
+        <form onSubmit={handleSubmit} className="ak-space-y-6 sm:ak-space-y-8">
+          {/* 基本设置 */}
+          <Card className="ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-border-amber-500/30 ak-shadow-2xl ak-shadow-amber-500/10">
+            <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-amber-400 ak-to-transparent"></div>
+            <div className="ak-p-6 sm:ak-p-8">
+              <h2 className="ak-text-xl sm:ak-text-2xl ak-font-bold ak-bg-gradient-to-r ak-from-amber-300 ak-to-amber-400 ak-bg-clip-text ak-text-transparent ak-mb-6 ak-flex ak-items-center ak-space-x-2">
+                <span>🎯</span>
+                <span>游戏设置</span>
+              </h2>
           
-          <div className="ak-grid ak-grid-cols-1 lg:ak-grid-cols-2 ak-gap-4 sm:ak-gap-6">
-            <div>
-              <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
-                房间名称 <span className="ak-text-red-500">*</span>
-              </label>
+              <div className="ak-grid ak-grid-cols-1 lg:ak-grid-cols-2 ak-gap-6">
+                <div>
+                  <label className="ak-block ak-text-sm ak-font-medium ak-text-amber-200 ak-mb-3">
+                    房间名称 <span className="ak-text-red-400">*</span>
+                  </label>
               <div className="ak-flex ak-flex-col sm:ak-flex-row ak-gap-2 sm:ak-space-x-0">
                 <Input
                   value={formData.tableName}
                   onChange={(e) => handleInputChange('tableName', e.target.value)}
                   placeholder="例如：周五夜战"
                   maxLength={30}
-                  className="ak-flex-1"
+                  className="ak-flex-1 ak-bg-gray-700 ak-border-amber-500/30 ak-text-amber-200 ak-placeholder-amber-400/60 ak-focus:border-amber-400 ak-focus:ring-amber-400"
                 />
                 <Button
                   type="button"
@@ -318,7 +329,7 @@ export default function CreatePokerGroupPage() {
                   disabled={isGeneratingName}
                   size="sm"
                   variant="outline"
-                  className="ak-min-w-[100px] sm:ak-min-w-[80px] ak-flex ak-items-center ak-justify-center ak-space-x-1 ak-min-h-[40px]"
+                  className="ak-min-w-[100px] sm:ak-min-w-[80px] ak-flex ak-items-center ak-justify-center ak-space-x-1 ak-min-h-[40px] ak-bg-gray-700 ak-border-amber-500/30 ak-text-amber-300 ak-hover:ak-bg-amber-500/10 ak-hover:ak-border-amber-400 ak-hover:ak-text-amber-200"
                 >
                   {isGeneratingName ? (
                     <>
@@ -336,12 +347,12 @@ export default function CreatePokerGroupPage() {
                 </Button>
               </div>
               {isGeneratingName && (
-                <p className="ak-text-xs ak-text-blue-600 ak-mt-1 ak-flex ak-items-center ak-space-x-1">
+                <p className="ak-text-xs ak-text-amber-400 ak-mt-1 ak-flex ak-items-center ak-space-x-1">
                   <span>AI正在基于游戏设置生成创意名称...</span>
                 </p>
               )}
               {!isGeneratingName && formData.tableName && !showNameSuggestion && (
-                <p className="ak-text-xs ak-text-gray-500 ak-mt-1">
+                <p className="ak-text-xs ak-text-amber-300/70 ak-mt-1">
                   💡 不满意？可以多次点击AI命名获得更多创意，或手动编辑
                 </p>
               )}
@@ -357,22 +368,22 @@ export default function CreatePokerGroupPage() {
             </div>
 
             <div>
-              <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
+              <label className="ak-block ak-text-sm ak-font-medium ak-text-amber-200 ak-mb-3">
                 游戏类型
               </label>
               <select
                 value={formData.gameType}
                 onChange={(e) => handleInputChange('gameType', e.target.value)}
-                className="ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-300 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500"
+                className="ak-w-full ak-px-3 ak-py-2 ak-border ak-border-amber-500/30 ak-bg-gray-700 ak-text-amber-200 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-amber-400 ak-focus:border-amber-400"
               >
-                <option value="points">积分模式</option>
-                <option value="tournament">锦标赛</option>
+                <option value="points" className="ak-bg-gray-700 ak-text-amber-200">积分模式</option>
+                <option value="tournament" className="ak-bg-gray-700 ak-text-amber-200">锦标赛</option>
               </select>
             </div>
 
             <div>
-              <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
-                初始积分 <span className="ak-text-red-500">*</span>
+              <label className="ak-block ak-text-sm ak-font-medium ak-text-amber-200 ak-mb-3">
+                初始积分 <span className="ak-text-red-400">*</span>
               </label>
               <Input
                 type="number"
@@ -381,30 +392,31 @@ export default function CreatePokerGroupPage() {
                 min={100}
                 max={100000}
                 step={50}
+                className="ak-bg-gray-700 ak-border-amber-500/30 ak-text-amber-200 ak-focus:border-amber-400 ak-focus:ring-amber-400"
               />
               {errors.initialChips && (
-                <p className="ak-text-sm ak-text-red-500 ak-mt-1">{errors.initialChips}</p>
+                <p className="ak-text-sm ak-text-red-400 ak-mt-1">{errors.initialChips}</p>
               )}
             </div>
 
             <div>
-              <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
+              <label className="ak-block ak-text-sm ak-font-medium ak-text-amber-200 ak-mb-3">
                 最大玩家数
               </label>
               <select
                 value={formData.maxPlayers}
                 onChange={(e) => handleInputChange('maxPlayers', parseInt(e.target.value))}
-                className="ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-300 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500"
+                className="ak-w-full ak-px-3 ak-py-2 ak-border ak-border-amber-500/30 ak-bg-gray-700 ak-text-amber-200 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-amber-400 ak-focus:border-amber-400"
               >
                 {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                  <option key={num} value={num}>{num}人游戏</option>
+                  <option key={num} value={num} className="ak-bg-gray-700 ak-text-amber-200">{num}人游戏</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
-                小盲注 <span className="ak-text-red-500">*</span>
+              <label className="ak-block ak-text-sm ak-font-medium ak-text-amber-200 ak-mb-3">
+                小盲注 <span className="ak-text-red-400">*</span>
               </label>
               <Input
                 type="number"
@@ -412,15 +424,16 @@ export default function CreatePokerGroupPage() {
                 onChange={(e) => handleInputChange('smallBlind', parseInt(e.target.value))}
                 min={1}
                 max={formData.initialChips / 20}
+                className="ak-bg-gray-700 ak-border-amber-500/30 ak-text-amber-200 ak-focus:border-amber-400 ak-focus:ring-amber-400"
               />
               {errors.smallBlind && (
-                <p className="ak-text-sm ak-text-red-500 ak-mt-1">{errors.smallBlind}</p>
+                <p className="ak-text-sm ak-text-red-400 ak-mt-1">{errors.smallBlind}</p>
               )}
             </div>
 
             <div>
-              <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
-                大盲注 <span className="ak-text-red-500">*</span>
+              <label className="ak-block ak-text-sm ak-font-medium ak-text-amber-200 ak-mb-3">
+                大盲注 <span className="ak-text-red-400">*</span>
               </label>
               <Input
                 type="number"
@@ -428,22 +441,29 @@ export default function CreatePokerGroupPage() {
                 onChange={(e) => handleInputChange('bigBlind', parseInt(e.target.value))}
                 min={formData.smallBlind + 1}
                 max={formData.initialChips / 10}
+                className="ak-bg-gray-700 ak-border-amber-500/30 ak-text-amber-200 ak-focus:border-amber-400 ak-focus:ring-amber-400"
               />
               {errors.bigBlind && (
-                <p className="ak-text-sm ak-text-red-500 ak-mt-1">{errors.bigBlind}</p>
+                <p className="ak-text-sm ak-text-red-400 ak-mt-1">{errors.bigBlind}</p>
               )}
             </div>
           </div>
+            </div>
         </Card>
 
-        {/* 玩家管理 */}
-        <Card className="ak-p-4 sm:ak-p-6">
-          <div className="ak-flex ak-items-center ak-justify-between ak-mb-3 sm:ak-mb-4">
-            <h2 className="ak-text-lg sm:ak-text-xl ak-font-semibold">👥 玩家管理</h2>
-            <div className="ak-text-xs sm:ak-text-sm ak-text-gray-500 ak-bg-gray-100 ak-px-2 ak-py-1 ak-rounded">
-              {players.length} / {formData.maxPlayers} 人
-            </div>
-          </div>
+          {/* 玩家管理 */}
+          <Card className="ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-border-blue-500/30 ak-shadow-2xl ak-shadow-blue-500/10">
+            <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-blue-400 ak-to-transparent"></div>
+            <div className="ak-p-6 sm:ak-p-8">
+              <div className="ak-flex ak-items-center ak-justify-between ak-mb-6">
+                <h2 className="ak-text-xl sm:ak-text-2xl ak-font-bold ak-bg-gradient-to-r ak-from-blue-300 ak-to-blue-400 ak-bg-clip-text ak-text-transparent ak-flex ak-items-center ak-space-x-2">
+                  <span>👥</span>
+                  <span>玩家管理</span>
+                </h2>
+                <div className="ak-text-sm ak-text-blue-300 ak-bg-blue-500/20 ak-border ak-border-blue-400/30 ak-px-3 ak-py-1.5 ak-rounded-lg ak-font-medium">
+                  {players.length} / {formData.maxPlayers} 人
+                </div>
+              </div>
 
           {/* 添加玩家 */}
           <div className="ak-flex ak-flex-col sm:ak-flex-row ak-gap-2 sm:ak-space-x-3 sm:ak-space-y-0 ak-mb-4">
@@ -453,7 +473,7 @@ export default function CreatePokerGroupPage() {
               placeholder="输入玩家姓名"
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPlayer())}
               maxLength={20}
-              className="ak-flex-1"
+              className="ak-flex-1 ak-bg-gray-700 ak-border-blue-500/30 ak-text-blue-200 ak-placeholder-blue-400/60 ak-focus:border-blue-400 ak-focus:ring-blue-400"
             />
             <div className="ak-flex ak-gap-2 sm:ak-gap-3">
               <Button 
@@ -461,7 +481,7 @@ export default function CreatePokerGroupPage() {
                 onClick={addPlayer} 
                 size="sm" 
                 disabled={players.length >= formData.maxPlayers}
-                className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
+                className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px] ak-bg-blue-600 ak-hover:ak-bg-blue-700 ak-text-white ak-border-blue-500/30"
               >
                 <span className="ak-hidden sm:ak-inline">添加玩家</span>
                 <span className="sm:ak-hidden">添加</span>
@@ -471,7 +491,7 @@ export default function CreatePokerGroupPage() {
                 variant="outline" 
                 onClick={addPresetPlayers} 
                 size="sm"
-                className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
+                className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px] ak-bg-gray-700 ak-border-blue-500/30 ak-text-blue-300 ak-hover:ak-bg-blue-500/10 ak-hover:ak-border-blue-400 ak-hover:ak-text-blue-200"
               >
                 <span className="ak-hidden sm:ak-inline">快速填充</span>
                 <span className="sm:ak-hidden">填充</span>
@@ -490,8 +510,8 @@ export default function CreatePokerGroupPage() {
                 key={player.id}
                 className={`ak-flex ak-items-center ak-justify-between ak-p-2 sm:ak-p-3 ak-rounded-lg ak-border ak-transition-colors ${
                   player.isCreator 
-                    ? 'ak-border-blue-200 ak-bg-blue-50' 
-                    : 'ak-border-gray-200 ak-bg-gray-50 ak-hover:bg-gray-100'
+                    ? 'ak-border-blue-500/40 ak-bg-gradient-to-br ak-from-blue-600/20 ak-to-blue-700/20' 
+                    : 'ak-border-gray-600/40 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-hover:ak-from-gray-600 ak-hover:ak-to-gray-500'
                 }`}
               >
                 <div className="ak-flex ak-items-center ak-space-x-2 ak-min-w-0 ak-flex-1">
@@ -499,21 +519,21 @@ export default function CreatePokerGroupPage() {
                     {player.isCreator ? '👑' : '🎭'}
                   </span>
                   {player.isCreator ? (
-                    <span className="ak-text-xs sm:ak-text-sm ak-font-medium ak-text-blue-700 ak-truncate">
+                    <span className="ak-text-xs sm:ak-text-sm ak-font-medium ak-text-blue-300 ak-truncate">
                       {player.name} (你)
                     </span>
                   ) : (
                     <Input
                       value={player.name}
                       onChange={(e) => updatePlayerName(player.id, e.target.value)}
-                      className="ak-text-xs sm:ak-text-sm ak-border-0 ak-bg-transparent ak-p-1 ak-focus:bg-white ak-focus:border ak-focus:border-gray-300 ak-min-w-0"
+                      className="ak-text-xs sm:ak-text-sm ak-border-0 ak-bg-transparent ak-text-gray-200 ak-p-1 ak-focus:ak-bg-gray-600 ak-focus:ak-border ak-focus:ak-border-gray-400 ak-min-w-0"
                       maxLength={20}
                     />
                   )}
                 </div>
                 
                 <div className="ak-flex ak-items-center ak-space-x-1 sm:ak-space-x-2 ak-flex-shrink-0">
-                  <span className="ak-text-xs ak-text-gray-500 ak-whitespace-nowrap">
+                  <span className="ak-text-xs ak-text-gray-300 ak-whitespace-nowrap">
                     <span className="ak-hidden sm:ak-inline">{formData.initialChips} 积分</span>
                     <span className="sm:ak-hidden">{formData.initialChips}</span>
                   </span>
@@ -521,7 +541,7 @@ export default function CreatePokerGroupPage() {
                     <button
                       type="button"
                       onClick={() => removePlayer(player.id)}
-                      className="ak-text-red-500 hover:ak-text-red-700 ak-text-sm ak-p-1 ak-min-h-[24px] ak-min-w-[24px] ak-flex ak-items-center ak-justify-center ak-rounded hover:ak-bg-red-50 ak-transition-colors"
+                      className="ak-text-red-400 hover:ak-text-red-300 ak-text-sm ak-p-1 ak-min-h-[24px] ak-min-w-[24px] ak-flex ak-items-center ak-justify-center ak-rounded hover:ak-bg-red-500/20 ak-transition-colors"
                     >
                       ✕
                     </button>
@@ -534,41 +554,48 @@ export default function CreatePokerGroupPage() {
           {errors.players && (
             <p className="ak-text-sm ak-text-red-500 ak-mt-3">{errors.players}</p>
           )}
+            </div>
         </Card>
 
-        {/* 游戏信息摘要 */}
-        <Card className="ak-p-4 sm:ak-p-6 ak-bg-blue-50 ak-border-blue-200">
-          <h3 className="ak-text-base sm:ak-text-lg ak-font-semibold ak-text-blue-800 ak-mb-3">📊 游戏摘要</h3>
-          <div className="ak-grid ak-grid-cols-2 lg:ak-grid-cols-4 ak-gap-3 sm:ak-gap-4 ak-text-xs sm:ak-text-sm">
-            <div className="ak-text-center sm:ak-text-left ak-p-2 sm:ak-p-3 ak-bg-white/50 ak-rounded-lg">
-              <div className="ak-text-gray-600 ak-mb-1">总玩家</div>
-              <div className="ak-text-base sm:ak-text-lg ak-font-semibold ak-text-blue-700">{players.length}人</div>
-            </div>
-            <div className="ak-text-center sm:ak-text-left ak-p-2 sm:ak-p-3 ak-bg-white/50 ak-rounded-lg">
-              <div className="ak-text-gray-600 ak-mb-1">总积分池</div>
-              <div className="ak-text-base sm:ak-text-lg ak-font-semibold ak-text-blue-700">
-                {(formData.initialChips * players.length).toLocaleString()}
+          {/* 游戏信息摘要 */}
+          <Card className="ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-border-green-500/30 ak-shadow-2xl ak-shadow-green-500/10">
+            <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-green-400 ak-to-transparent"></div>
+            <div className="ak-p-6 sm:ak-p-8">
+              <h3 className="ak-text-xl sm:ak-text-2xl ak-font-bold ak-bg-gradient-to-r ak-from-green-300 ak-to-green-400 ak-bg-clip-text ak-text-transparent ak-mb-6 ak-flex ak-items-center ak-space-x-2">
+                <span>📊</span>
+                <span>游戏摘要</span>
+              </h3>
+              <div className="ak-grid ak-grid-cols-2 lg:ak-grid-cols-4 ak-gap-4 sm:ak-gap-6">
+                <div className="ak-text-center ak-p-4 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-border ak-border-green-500/20 ak-rounded-xl ak-shadow-lg">
+                  <div className="ak-text-green-300/80 ak-mb-2 ak-font-medium">总玩家</div>
+                  <div className="ak-text-lg sm:ak-text-xl ak-font-bold ak-bg-gradient-to-r ak-from-green-400 ak-to-green-500 ak-bg-clip-text ak-text-transparent">{players.length}人</div>
+                </div>
+                <div className="ak-text-center ak-p-4 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-border ak-border-green-500/20 ak-rounded-xl ak-shadow-lg">
+                  <div className="ak-text-green-300/80 ak-mb-2 ak-font-medium">总积分池</div>
+                  <div className="ak-text-lg sm:ak-text-xl ak-font-bold ak-bg-gradient-to-r ak-from-green-400 ak-to-green-500 ak-bg-clip-text ak-text-transparent">
+                    {(formData.initialChips * players.length).toLocaleString()}
+                  </div>
+                </div>
+                <div className="ak-text-center ak-p-4 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-border ak-border-green-500/20 ak-rounded-xl ak-shadow-lg">
+                  <div className="ak-text-green-300/80 ak-mb-2 ak-font-medium">盲注结构</div>
+                  <div className="ak-text-lg sm:ak-text-xl ak-font-bold ak-bg-gradient-to-r ak-from-green-400 ak-to-green-500 ak-bg-clip-text ak-text-transparent">
+                    {formData.smallBlind}/{formData.bigBlind}
+                  </div>
+                </div>
+                <div className="ak-text-center ak-p-4 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-border ak-border-green-500/20 ak-rounded-xl ak-shadow-lg">
+                  <div className="ak-text-green-300/80 ak-mb-2 ak-font-medium">买入倍数</div>
+                  <div className="ak-text-lg sm:ak-text-xl ak-font-bold ak-bg-gradient-to-r ak-from-green-400 ak-to-green-500 ak-bg-clip-text ak-text-transparent">
+                    {Math.floor(formData.initialChips / formData.bigBlind)}BB
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="ak-text-center sm:ak-text-left ak-p-2 sm:ak-p-3 ak-bg-white/50 ak-rounded-lg">
-              <div className="ak-text-gray-600 ak-mb-1">盲注结构</div>
-              <div className="ak-text-base sm:ak-text-lg ak-font-semibold ak-text-blue-700">
-                {formData.smallBlind}/{formData.bigBlind}
-              </div>
-            </div>
-            <div className="ak-text-center sm:ak-text-left ak-p-2 sm:ak-p-3 ak-bg-white/50 ak-rounded-lg">
-              <div className="ak-text-gray-600 ak-mb-1">买入倍数</div>
-              <div className="ak-text-base sm:ak-text-lg ak-font-semibold ak-text-blue-700">
-                {Math.floor(formData.initialChips / formData.bigBlind)}BB
-              </div>
-            </div>
-          </div>
-        </Card>
+          </Card>
 
         {/* 错误信息 */}
         {errors.submit && (
-          <div className="ak-bg-red-50 ak-border ak-border-red-200 ak-rounded-md ak-p-3">
-            <p className="ak-text-sm ak-text-red-600">{errors.submit}</p>
+          <div className="ak-bg-red-500/10 ak-border ak-border-red-500/30 ak-rounded-md ak-p-3">
+            <p className="ak-text-sm ak-text-red-400">{errors.submit}</p>
           </div>
         )}
 
@@ -579,7 +606,7 @@ export default function CreatePokerGroupPage() {
             variant="outline"
             onClick={() => router.back()}
             size="lg"
-            className="ak-w-full sm:ak-w-auto ak-min-w-[120px] ak-min-h-[48px]"
+            className="ak-w-full sm:ak-w-auto ak-min-w-[120px] ak-min-h-[48px] ak-bg-gray-700 ak-border-gray-500/30 ak-text-gray-300 ak-hover:ak-bg-gray-600 ak-hover:ak-border-gray-400 ak-hover:ak-text-gray-200"
           >
             取消
           </Button>
@@ -587,11 +614,11 @@ export default function CreatePokerGroupPage() {
             type="submit" 
             disabled={loading} 
             size="lg" 
-            className="ak-w-full sm:ak-w-auto ak-min-w-[140px] ak-min-h-[48px] ak-bg-blue-600 ak-hover:bg-blue-700"
+            className="ak-w-full sm:ak-w-auto ak-min-w-[140px] ak-min-h-[48px] ak-bg-gradient-to-r ak-from-amber-500 ak-via-amber-400 ak-to-amber-500 ak-hover:ak-from-amber-600 ak-hover:ak-via-amber-500 ak-hover:ak-to-amber-600 ak-text-gray-900 ak-font-bold ak-shadow-xl ak-shadow-amber-500/30 ak-border ak-border-amber-400"
           >
             {loading ? (
               <div className="ak-flex ak-items-center ak-space-x-2">
-                <div className="ak-w-4 ak-h-4 ak-border-2 ak-border-white ak-border-t-transparent ak-rounded-full ak-animate-spin"></div>
+                <div className="ak-w-4 ak-h-4 ak-border-2 ak-border-gray-900 ak-border-t-transparent ak-rounded-full ak-animate-spin"></div>
                 <span>创建中...</span>
               </div>
             ) : (
@@ -603,6 +630,7 @@ export default function CreatePokerGroupPage() {
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

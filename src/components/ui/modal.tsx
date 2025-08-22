@@ -45,7 +45,7 @@ export const Modal: React.FC<ModalProps> = ({
             }`}
           >
             <div 
-              className={`ak-bg-white ak-rounded-lg ak-shadow-2xl ak-max-h-[calc(100vh-48px)] ak-overflow-hidden ak-animate-fade-in ak-transition-all ak-duration-200 ${
+              className={`ak-bg-gray-800 ak-border ak-border-gray-600 ak-rounded-lg ak-shadow-2xl ak-max-h-[calc(100vh-48px)] ak-overflow-hidden ak-animate-fade-in ak-transition-all ak-duration-200 ${
                 open ? 'ak-scale-100 ak-opacity-100' : 'ak-scale-95 ak-opacity-0'
               }`}
               style={{ width: `${width}px`, maxWidth: '90vw' }}
@@ -53,12 +53,12 @@ export const Modal: React.FC<ModalProps> = ({
             >
               
               {/* Modal Header */}
-              <div className="ak-flex ak-items-center ak-justify-between ak-px-6 ak-py-4 ak-border-b ak-border-gray-200">
-                <h3 className="ak-text-lg ak-font-semibold ak-text-gray-900 ak-flex ak-items-center ak-gap-2">
+              <div className="ak-flex ak-items-center ak-justify-between ak-px-6 ak-py-4 ak-border-b ak-border-gray-600">
+                <h3 className="ak-text-lg ak-font-semibold ak-text-gray-100 ak-flex ak-items-center ak-gap-2">
                   {title}
                 </h3>
                 <button
-                  className="ak-text-gray-400 ak-hover:text-gray-600 ak-transition-colors ak-duration-200 ak-p-1 ak-rounded ak-hover:bg-gray-100"
+                  className="ak-text-gray-400 ak-hover:text-gray-300 ak-transition-colors ak-duration-200 ak-p-1 ak-rounded ak-hover:bg-gray-700"
                   onClick={onCancel}
                 >
                   <svg className="ak-w-5 ak-h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +74,7 @@ export const Modal: React.FC<ModalProps> = ({
               
               {/* Modal Footer */}
               {footer && (
-                <div className="ak-flex ak-justify-end ak-space-x-3 ak-px-6 ak-py-4 ak-border-t ak-border-gray-200 ak-bg-gray-50">
+                <div className="ak-flex ak-justify-end ak-space-x-3 ak-px-6 ak-py-4 ak-border-t ak-border-gray-600 ak-bg-gray-750">
                   {footer}
                 </div>
               )}
@@ -93,9 +93,9 @@ export const FormItem: React.FC<{
   required?: boolean;
 }> = ({ label, children, required }) => (
   <div className="ak-mb-4">
-    <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-700 ak-mb-2">
+    <label className="ak-block ak-text-sm ak-font-medium ak-text-gray-300 ak-mb-2">
       {label}
-      {required && <span className="ak-text-red-500 ak-ml-1">*</span>}
+      {required && <span className="ak-text-red-400 ak-ml-1">*</span>}
     </label>
     {children}
   </div>
@@ -111,11 +111,11 @@ export const Select: React.FC<{
   <select
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-300 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500 ak-focus:border-blue-500 ak-transition-colors ${className}`}
+    className={`ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-600 ak-bg-gray-700 ak-text-gray-200 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500 ak-focus:border-blue-500 ak-transition-colors ${className}`}
   >
     {placeholder && <option value="">{placeholder}</option>}
     {options.map((option) => (
-      <option key={option.value} value={option.value} disabled={option.disabled}>
+      <option key={option.value} value={option.value} disabled={option.disabled} className="ak-bg-gray-700 ak-text-gray-200">
         {option.label}
       </option>
     ))}
@@ -137,7 +137,7 @@ export const InputNumber: React.FC<{
     min={min}
     max={max}
     placeholder={placeholder}
-    className={`ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-300 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500 ak-focus:border-blue-500 ak-transition-colors ${className}`}
+    className={`ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-600 ak-bg-gray-700 ak-text-gray-200 ak-placeholder-gray-400 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500 ak-focus:border-blue-500 ak-transition-colors ${className}`}
   />
 );
 
@@ -153,6 +153,6 @@ export const TextArea: React.FC<{
     onChange={(e) => onChange(e.target.value)}
     placeholder={placeholder}
     rows={rows}
-    className={`ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-300 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500 ak-focus:border-blue-500 ak-transition-colors ak-resize-none ${className}`}
+    className={`ak-w-full ak-px-3 ak-py-2 ak-border ak-border-gray-600 ak-bg-gray-700 ak-text-gray-200 ak-placeholder-gray-400 ak-rounded-md ak-focus:outline-none ak-focus:ring-2 ak-focus:ring-blue-500 ak-focus:border-blue-500 ak-transition-colors ak-resize-none ${className}`}
   />
 );

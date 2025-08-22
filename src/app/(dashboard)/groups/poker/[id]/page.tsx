@@ -519,148 +519,155 @@ export default function PokerGroupPage() {
   const isChipsConserved = totalChips === totalBought;
 
   return (
-    <div className="ak-space-y-4 sm:ak-space-y-6 ak-max-w-6xl ak-mx-auto ak-px-4 sm:ak-px-6 lg:ak-px-8">
-      {/* 游戏头部信息 */}
-      <Card className="ak-p-4 sm:ak-p-6 ak-bg-gradient-to-r ak-from-blue-50 ak-to-purple-50">
-        <div className="ak-flex ak-flex-col lg:ak-flex-row lg:ak-justify-between lg:ak-items-start ak-space-y-4 lg:ak-space-y-0 ak-mb-4">
-          <div className="ak-flex-1">
-            <h1 className="ak-text-lg sm:ak-text-xl lg:ak-text-2xl ak-font-bold ak-text-gray-900 ak-mb-1">{group.name}</h1>
-            <p className="ak-text-sm sm:ak-text-base ak-text-gray-600 ak-mb-2">{group.description}</p>
-            <div className="ak-flex ak-flex-wrap ak-items-center ak-gap-2 sm:ak-gap-3 lg:ak-gap-4 ak-text-xs sm:ak-text-sm ak-text-gray-500">
-              <span className="ak-bg-white/50 ak-px-2 ak-py-1 ak-rounded">🎲 {pokerSettings?.gameType === 'points' ? '积分模式' : '锦标赛'}</span>
-              <span className="ak-bg-white/50 ak-px-2 ak-py-1 ak-rounded">🃏 {pokerSettings?.smallBlind}/{pokerSettings?.bigBlind}</span>
-              <span className="ak-bg-white/50 ak-px-2 ak-py-1 ak-rounded">👥 {players.length} 玩家</span>
-              <span className={`ak-px-2 ak-py-1 ak-rounded ak-text-xs ak-font-medium ${
-                gameStatus === 'active' ? 'ak-bg-green-100 ak-text-green-800' :
-                gameStatus === 'paused' ? 'ak-bg-yellow-100 ak-text-yellow-800' :
-                'ak-bg-gray-100 ak-text-gray-800'
-              }`}>
-                {gameStatus === 'active' ? '游戏中' : gameStatus === 'paused' ? '暂停' : '已结束'}
-              </span>
-            </div>
-          </div>
-          
-          <div className="ak-grid ak-grid-cols-2 ak-gap-3 sm:ak-gap-4 ak-text-center ak-min-w-0 lg:ak-min-w-[200px]">
-            <div className="ak-bg-white/50 ak-p-2 sm:ak-p-3 ak-rounded-lg">
-              <div className="ak-text-xs sm:ak-text-sm ak-text-gray-600 ak-mb-1">总积分池</div>
-              <div className={`ak-text-base sm:ak-text-lg lg:ak-text-xl ak-font-bold ${isChipsConserved ? 'ak-text-blue-600' : 'ak-text-red-600'}`}>
-                {totalChips.toLocaleString()}
+    <div className="ak-min-h-screen ak-bg-gradient-to-br ak-from-gray-900 ak-via-gray-800 ak-to-gray-900">
+      <div className="ak-space-y-4 sm:ak-space-y-6 ak-max-w-6xl ak-mx-auto ak-px-4 sm:ak-px-6 lg:ak-px-8 ak-pt-8">
+        {/* 游戏头部信息 */}
+        <Card className="ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-border-amber-500/30 ak-shadow-2xl ak-shadow-amber-500/10">
+          <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-amber-400 ak-to-transparent"></div>
+          <div className="ak-p-4 sm:ak-p-6">
+            <div className="ak-flex ak-flex-col lg:ak-flex-row lg:ak-justify-between lg:ak-items-start ak-space-y-4 lg:ak-space-y-0 ak-mb-4">
+              <div className="ak-flex-1">
+                <h1 className="ak-text-lg sm:ak-text-xl lg:ak-text-2xl ak-font-bold ak-bg-gradient-to-r ak-from-amber-300 ak-via-amber-400 ak-to-amber-500 ak-bg-clip-text ak-text-transparent ak-mb-1">{group.name}</h1>
+                <p className="ak-text-sm sm:ak-text-base ak-text-amber-200/80 ak-mb-2">{group.description}</p>
+                <div className="ak-flex ak-flex-wrap ak-items-center ak-gap-2 sm:ak-gap-3 lg:ak-gap-4 ak-text-xs sm:ak-text-sm ak-text-amber-300">
+                  <span className="ak-bg-amber-500/20 ak-border ak-border-amber-500/30 ak-px-2 ak-py-1 ak-rounded">🎲 {pokerSettings?.gameType === 'points' ? '积分模式' : '锦标赛'}</span>
+                  <span className="ak-bg-amber-500/20 ak-border ak-border-amber-500/30 ak-px-2 ak-py-1 ak-rounded">🃏 {pokerSettings?.smallBlind}/{pokerSettings?.bigBlind}</span>
+                  <span className="ak-bg-amber-500/20 ak-border ak-border-amber-500/30 ak-px-2 ak-py-1 ak-rounded">👥 {players.length} 玩家</span>
+                  <span className={`ak-px-2 ak-py-1 ak-rounded ak-text-xs ak-font-medium ak-border ${
+                    gameStatus === 'active' ? 'ak-bg-green-500/20 ak-text-green-300 ak-border-green-500/30' :
+                    gameStatus === 'paused' ? 'ak-bg-yellow-500/20 ak-text-yellow-300 ak-border-yellow-500/30' :
+                    'ak-bg-gray-500/20 ak-text-gray-300 ak-border-gray-500/30'
+                  }`}>
+                    {gameStatus === 'active' ? '游戏中' : gameStatus === 'paused' ? '暂停' : '已结束'}
+                  </span>
+                </div>
               </div>
-              <div className="ak-text-xs ak-text-gray-500">
-                初始: {totalBought.toLocaleString()}
+              
+              <div className="ak-grid ak-grid-cols-2 ak-gap-3 sm:ak-gap-4 ak-text-center ak-min-w-0 lg:ak-min-w-[200px]">
+                <div className="ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-border ak-border-amber-500/20 ak-p-2 sm:ak-p-3 ak-rounded-lg ak-shadow-lg">
+                  <div className="ak-text-xs sm:ak-text-sm ak-text-amber-300/80 ak-mb-1">总积分池</div>
+                  <div className={`ak-text-base sm:ak-text-lg lg:ak-text-xl ak-font-bold ${isChipsConserved ? 'ak-text-blue-400' : 'ak-text-red-400'}`}>
+                    {totalChips.toLocaleString()}
+                  </div>
+                  <div className="ak-text-xs ak-text-amber-400/70">
+                    初始: {totalBought.toLocaleString()}
+                  </div>
+                </div>
+                
+                <div className="ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-border ak-border-amber-500/20 ak-p-2 sm:ak-p-3 ak-rounded-lg ak-shadow-lg">
+                  <div className="ak-text-xs sm:ak-text-sm ak-text-amber-300/80 ak-mb-1">积分流动</div>
+                  <div className="ak-text-xs ak-text-amber-400/70 ak-space-y-1">
+                    <div>转移: {totalWon.toLocaleString()}</div>
+                    <div>守恒: {isChipsConserved ? '✅' : '❌'}</div>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="ak-bg-white/50 ak-p-2 sm:ak-p-3 ak-rounded-lg">
-              <div className="ak-text-xs sm:ak-text-sm ak-text-gray-600 ak-mb-1">积分流动</div>
-              <div className="ak-text-xs ak-text-gray-500 ak-space-y-1">
-                <div>转移: {totalWon.toLocaleString()}</div>
-                <div>守恒: {isChipsConserved ? '✅' : '❌'}</div>
-              </div>
+            <div className="ak-grid ak-grid-cols-2 sm:ak-flex sm:ak-flex-wrap ak-gap-2 sm:ak-gap-3">
+              <Button
+                onClick={() => setShowTransferModal(true)}
+                disabled={gameStatus === 'finished'}
+                size="sm"
+                className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px] ak-bg-amber-600 ak-hover:ak-bg-amber-700 ak-text-gray-900 ak-font-bold ak-border ak-border-amber-500"
+              >
+                <span className="ak-hidden sm:ak-inline">💸 转移积分</span>
+                <span className="sm:ak-hidden">💸 转移</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={calculateSettlement}
+                size="sm"
+                className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px] ak-bg-gray-700 ak-border-blue-500/30 ak-text-blue-300 ak-hover:ak-bg-blue-500/10 ak-hover:ak-border-blue-400 ak-hover:ak-text-blue-200"
+              >
+                <span className="ak-hidden sm:ak-inline">📊 查看结算</span>
+                <span className="sm:ak-hidden">📊 结算</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setGameStatus(gameStatus === 'active' ? 'paused' : 'active')}
+                disabled={gameStatus === 'finished'}
+                size="sm"
+                className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px] ak-bg-gray-700 ak-border-yellow-500/30 ak-text-yellow-300 ak-hover:ak-bg-yellow-500/10 ak-hover:ak-border-yellow-400 ak-hover:ak-text-yellow-200"
+              >
+                <span className="ak-hidden sm:ak-inline">{gameStatus === 'active' ? '⏸️ 暂停' : '▶️ 继续'}</span>
+                <span className="sm:ak-hidden">{gameStatus === 'active' ? '⏸️' : '▶️'}</span>
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={finishGame}
+                disabled={gameStatus === 'finished'}
+                size="sm"
+                className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px] ak-bg-red-600 ak-hover:ak-bg-red-700 ak-text-white ak-border ak-border-red-500"
+              >
+                <span className="ak-hidden sm:ak-inline">🏁 结束游戏</span>
+                <span className="sm:ak-hidden">🏁 结束</span>
+              </Button>
             </div>
           </div>
-        </div>
-        
-        <div className="ak-grid ak-grid-cols-2 sm:ak-flex sm:ak-flex-wrap ak-gap-2 sm:ak-gap-3">
-          <Button
-            onClick={() => setShowTransferModal(true)}
-            disabled={gameStatus === 'finished'}
-            size="sm"
-            className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
-          >
-            <span className="ak-hidden sm:ak-inline">💸 转移积分</span>
-            <span className="sm:ak-hidden">💸 转移</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={calculateSettlement}
-            size="sm"
-            className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
-          >
-            <span className="ak-hidden sm:ak-inline">📊 查看结算</span>
-            <span className="sm:ak-hidden">📊 结算</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setGameStatus(gameStatus === 'active' ? 'paused' : 'active')}
-            disabled={gameStatus === 'finished'}
-            size="sm"
-            className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
-          >
-            <span className="ak-hidden sm:ak-inline">{gameStatus === 'active' ? '⏸️ 暂停' : '▶️ 继续'}</span>
-            <span className="sm:ak-hidden">{gameStatus === 'active' ? '⏸️' : '▶️'}</span>
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={finishGame}
-            disabled={gameStatus === 'finished'}
-            size="sm"
-            className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px]"
-          >
-            <span className="ak-hidden sm:ak-inline">🏁 结束游戏</span>
-            <span className="sm:ak-hidden">🏁 结束</span>
-          </Button>
-        </div>
-      </Card>
+        </Card>
 
-      {/* 玩家筹码显示 */}
-      <div className="ak-grid ak-grid-cols-1 sm:ak-grid-cols-2 lg:ak-grid-cols-3 ak-gap-3 sm:ak-gap-4">
-        {players.map((player, index) => (
-          <Card key={player.id} className={`ak-p-3 sm:ak-p-4 ak-relative ak-transition-shadow ak-hover:shadow-md ${
-            index === 0 ? 'ak-border-yellow-300 ak-bg-yellow-50' : ''
-          }`}>
-            {index === 0 && (
-              <div className="ak-absolute ak-top-2 ak-right-2 ak-text-sm">
-                👑
-              </div>
-            )}
+        {/* 玩家筹码显示 */}
+        <div className="ak-grid ak-grid-cols-1 sm:ak-grid-cols-2 lg:ak-grid-cols-3 ak-gap-3 sm:ak-gap-4">
+          {players.map((player, index) => (
+            <Card key={player.id} className={`ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-transition-shadow ak-hover:shadow-lg ak-hover:shadow-amber-500/20 ak-p-3 sm:ak-p-4 ${
+              index === 0 ? 'ak-border-amber-500/40 ak-shadow-amber-500/20' : 'ak-border-gray-600/40'
+            }`}>
+              {index === 0 && (
+                <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-amber-400 ak-to-transparent"></div>
+              )}
+              {index === 0 && (
+                <div className="ak-absolute ak-top-2 ak-right-2 ak-text-sm ak-text-amber-400">
+                  👑
+                </div>
+              )}
             
             <div className="ak-flex ak-items-center ak-justify-between ak-mb-3">
               <div className="ak-flex ak-items-center ak-space-x-2 ak-min-w-0 ak-flex-1">
                 <span className="ak-text-base sm:ak-text-lg ak-flex-shrink-0">
                   {player.isCreator ? '👑' : '🎭'}
                 </span>
-                <h3 className="ak-text-sm sm:ak-text-base ak-font-semibold ak-text-gray-900 ak-truncate">
+                <h3 className="ak-text-sm sm:ak-text-base ak-font-semibold ak-text-gray-100 ak-truncate">
                   {player.name}
-                  {player.isCreator && <span className="ak-text-xs ak-text-blue-500 ak-ml-1">(你)</span>}
+                  {player.isCreator && <span className="ak-text-xs ak-text-blue-400 ak-ml-1">(你)</span>}
                 </h3>
               </div>
-              <div className="ak-text-xs ak-px-2 ak-py-1 ak-rounded ak-bg-blue-100 ak-text-blue-800 ak-flex-shrink-0">
+              <div className="ak-text-xs ak-px-2 ak-py-1 ak-rounded ak-bg-blue-600/30 ak-text-blue-300 ak-border ak-border-blue-500/40 ak-flex-shrink-0">
                 在场
               </div>
             </div>
             
             <div className="ak-space-y-2">
               <div className="ak-flex ak-justify-between ak-items-center">
-                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-600">当前筹码</span>
+                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-300">当前筹码</span>
                 <span className={`ak-text-sm sm:ak-text-base ak-font-bold ${
-                  player.currentChips > pokerSettings?.initialChips ? 'ak-text-green-600' :
-                  player.currentChips < pokerSettings?.initialChips ? 'ak-text-red-600' :
-                  'ak-text-gray-900'
+                  player.currentChips > pokerSettings?.initialChips ? 'ak-text-green-400' :
+                  player.currentChips < pokerSettings?.initialChips ? 'ak-text-red-400' :
+                  'ak-text-gray-100'
                 }`}>
                   {player.currentChips.toLocaleString()}
                 </span>
               </div>
               
               <div className="ak-flex ak-justify-between ak-items-center">
-                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-600">初始筹码</span>
-                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-800">
+                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-300">初始筹码</span>
+                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-200">
                   {player.totalBought.toLocaleString()}
                 </span>
               </div>
               
               <div className="ak-flex ak-justify-between ak-items-center">
-                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-600">损益</span>
+                <span className="ak-text-xs sm:ak-text-sm ak-text-gray-300">损益</span>
                 <span className={`ak-text-xs sm:ak-text-sm ak-font-medium ${
-                  player.netResult > 0 ? 'ak-text-green-600' :
-                  player.netResult < 0 ? 'ak-text-red-600' :
-                  'ak-text-gray-600'
+                  player.netResult > 0 ? 'ak-text-green-400' :
+                  player.netResult < 0 ? 'ak-text-red-400' :
+                  'ak-text-gray-300'
                 }`}>
                   {player.netResult > 0 ? '+' : ''}{player.netResult.toLocaleString()}
                 </span>
               </div>
               
-              <div className="ak-w-full ak-bg-gray-200 ak-rounded-full ak-h-2 ak-mt-2">
+              <div className="ak-w-full ak-bg-gray-600 ak-rounded-full ak-h-2 ak-mt-2">
                 <div
                   className={`ak-h-2 ak-rounded-full ak-transition-all ak-duration-300 ${
                     player.currentChips > pokerSettings?.initialChips ? 'ak-bg-green-500' :
@@ -683,7 +690,7 @@ export default function PokerGroupPage() {
                     setBuyInTo(player.id);
                     setShowBuyInModal(true);
                   }}
-                  className="ak-flex-1 ak-text-xs ak-bg-green-50 ak-text-green-700 ak-border-green-200 hover:ak-bg-green-100 ak-min-h-[36px] ak-transition-colors"
+                  className="ak-flex-1 ak-text-xs ak-bg-green-600/20 ak-text-green-300 ak-border-green-500/40 hover:ak-bg-green-600/30 ak-min-h-[36px] ak-transition-colors"
                 >
                   <span className="ak-hidden sm:ak-inline">💰 赢得</span>
                   <span className="sm:ak-hidden">💰</span>
@@ -695,7 +702,7 @@ export default function PokerGroupPage() {
                     setTransferFrom(player.id);
                     setShowTransferModal(true);
                   }}
-                  className="ak-flex-1 ak-text-xs ak-bg-orange-50 ak-text-orange-700 ak-border-orange-200 hover:ak-bg-orange-100 ak-min-h-[36px] ak-transition-colors"
+                  className="ak-flex-1 ak-text-xs ak-bg-orange-600/20 ak-text-orange-300 ak-border-orange-500/40 hover:ak-bg-orange-600/30 ak-min-h-[36px] ak-transition-colors"
                 >
                   <span className="ak-hidden sm:ak-inline">📤 借出</span>
                   <span className="sm:ak-hidden">📤</span>
@@ -707,28 +714,28 @@ export default function PokerGroupPage() {
       </div>
 
       {/* 游戏规则说明 */}
-      <Card className="ak-p-4 ak-bg-gradient-to-r ak-from-blue-50 ak-to-indigo-50 ak-border-blue-200">
-        <h3 className="ak-text-sm ak-font-semibold ak-text-blue-800 ak-mb-2 ak-flex ak-items-center ak-gap-2">
+      <Card className="ak-p-4 ak-bg-gradient-to-r ak-from-blue-800/20 ak-to-indigo-800/20 ak-border-blue-500/30">
+        <h3 className="ak-text-sm ak-font-semibold ak-text-blue-300 ak-mb-2 ak-flex ak-items-center ak-gap-2">
           📋 积分操作规则
         </h3>
-        <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 ak-gap-4 ak-text-xs ak-text-blue-700">
+        <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 ak-gap-4 ak-text-xs ak-text-blue-300">
           <div className="ak-flex ak-items-center ak-space-x-2">
-            <span className="ak-bg-green-100 ak-text-green-700 ak-px-2 ak-py-1 ak-rounded">💰 获取</span>
+            <span className="ak-bg-green-600/30 ak-text-green-300 ak-px-2 ak-py-1 ak-rounded ak-border ak-border-green-500/40">💰 获取</span>
             <span>= 赢得积分（计入净利润）</span>
           </div>
           <div className="ak-flex ak-items-center ak-space-x-2">
-            <span className="ak-bg-orange-100 ak-text-orange-700 ak-px-2 ak-py-1 ak-rounded">📤 转出</span>
+            <span className="ak-bg-orange-600/30 ak-text-orange-300 ak-px-2 ak-py-1 ak-rounded ak-border ak-border-orange-500/40">📤 转出</span>
             <span>= 借出积分（不影响净利润）</span>
           </div>
-          <div className="ak-col-span-1 md:ak-col-span-2 ak-text-blue-600 ak-bg-blue-100 ak-px-3 ak-py-2 ak-rounded ak-text-center">
+          <div className="ak-col-span-1 md:ak-col-span-2 ak-text-blue-300 ak-bg-blue-600/20 ak-px-3 ak-py-2 ak-rounded ak-text-center ak-border ak-border-blue-500/40">
             <strong>示例：</strong> Wade赢得Tomas 2000 → Wade净利润+2000；Wade借出给Tomas 2000 → Wade净利润仍为+2000（借出不算输掉）
           </div>
         </div>
       </Card>
 
       {/* 对战统计排名 */}
-      <Card className="ak-p-6">
-        <h3 className="ak-text-lg ak-font-semibold ak-mb-4 ak-flex ak-items-center ak-gap-2">
+      <Card className="ak-p-6 ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border-gray-600/40">
+        <h3 className="ak-text-lg ak-font-semibold ak-mb-4 ak-flex ak-items-center ak-gap-2 ak-text-gray-100">
           ⚔️ 净利润排名
         </h3>
         <div className="ak-space-y-3">
@@ -736,21 +743,21 @@ export default function PokerGroupPage() {
               <div 
                 key={playerStat.id}
                 className={`ak-flex ak-justify-between ak-items-center ak-p-3 ak-rounded-lg ak-border ak-transition-all ak-duration-200 ${
-                  index === 0 ? 'ak-bg-gradient-to-r ak-from-green-50 ak-to-emerald-50 ak-border-green-200' :
-                  playerStat.netResult > 0 ? 'ak-bg-green-50 ak-border-green-200' :
-                  playerStat.netResult < 0 ? 'ak-bg-red-50 ak-border-red-200' :
-                  'ak-bg-gray-50 ak-border-gray-200'
+                  index === 0 ? 'ak-bg-gradient-to-r ak-from-green-800/30 ak-to-emerald-800/30 ak-border-green-500/40' :
+                  playerStat.netResult > 0 ? 'ak-bg-green-800/20 ak-border-green-500/40' :
+                  playerStat.netResult < 0 ? 'ak-bg-red-800/20 ak-border-red-500/40' :
+                  'ak-bg-gray-700/30 ak-border-gray-600/40'
                 }`}
               >
                 <div className="ak-flex ak-items-center ak-space-x-3">
                   <span className={`ak-text-lg ak-font-bold ak-w-8 ak-text-center ${
-                    index === 0 ? 'ak-text-green-600' : 'ak-text-gray-600'
+                    index === 0 ? 'ak-text-green-400' : 'ak-text-gray-300'
                   }`}>
                     {index === 0 ? '👑' : `#${index + 1}`}
                   </span>
                   <div>
-                    <div className="ak-font-semibold ak-text-gray-900">{playerStat.name}</div>
-                    <div className="ak-text-xs ak-text-gray-500">
+                    <div className="ak-font-semibold ak-text-gray-100">{playerStat.name}</div>
+                    <div className="ak-text-xs ak-text-gray-400">
                       获得 {playerStat.totalWonFromOthers.toLocaleString()} | 
                       失去 {playerStat.totalLostToOthers.toLocaleString()}
                     </div>
@@ -758,13 +765,13 @@ export default function PokerGroupPage() {
                 </div>
                 <div className="ak-text-right">
                   <div className={`ak-font-bold ak-text-lg ${
-                    playerStat.netResult > 0 ? 'ak-text-green-600' :
-                    playerStat.netResult < 0 ? 'ak-text-red-600' :
-                    'ak-text-gray-600'
+                    playerStat.netResult > 0 ? 'ak-text-green-400' :
+                    playerStat.netResult < 0 ? 'ak-text-red-400' :
+                    'ak-text-gray-300'
                   }`}>
                     {playerStat.netResult > 0 ? '+' : ''}{playerStat.netResult.toLocaleString()}
                   </div>
-                  <div className="ak-text-xs ak-text-gray-500">净利润</div>
+                  <div className="ak-text-xs ak-text-gray-400">净利润</div>
                 </div>
               </div>
             ))}
@@ -772,7 +779,7 @@ export default function PokerGroupPage() {
           {players.length > 5 && (
             <div className="ak-text-center ak-py-2">
               <button
-                className="ak-text-sm ak-text-blue-600 ak-hover:text-blue-800 ak-transition-colors"
+                className="ak-text-sm ak-text-blue-400 ak-hover:text-blue-300 ak-transition-colors"
                 onClick={calculateSettlement}
               >
                 查看完整排名 →
@@ -1012,15 +1019,15 @@ export default function PokerGroupPage() {
           
           {/* Modal Container */}
           <div className="ak-fixed ak-inset-0 ak-flex ak-items-center ak-justify-center ak-p-4">
-            <div className="ak-bg-white ak-rounded-lg ak-shadow-2xl ak-max-w-4xl ak-w-full ak-max-h-[90vh] ak-overflow-hidden ak-animate-fade-in">
+            <div className="ak-bg-gray-800 ak-rounded-lg ak-shadow-2xl ak-max-w-4xl ak-w-full ak-max-h-[90vh] ak-overflow-hidden ak-animate-fade-in ak-border ak-border-gray-600">
               
               {/* Modal Header */}
-              <div className="ak-flex ak-items-center ak-justify-between ak-px-6 ak-py-4 ak-border-b ak-border-gray-200">
-                <h3 className="ak-text-lg ak-font-semibold ak-text-gray-900 ak-flex ak-items-center ak-gap-2">
+              <div className="ak-flex ak-items-center ak-justify-between ak-px-6 ak-py-4 ak-border-b ak-border-gray-600">
+                <h3 className="ak-text-lg ak-font-semibold ak-text-gray-100 ak-flex ak-items-center ak-gap-2">
                   📊 游戏结算
                 </h3>
                 <button
-                  className="ak-text-gray-400 ak-hover:text-gray-600 ak-transition-colors ak-duration-200"
+                  className="ak-text-gray-400 ak-hover:text-gray-300 ak-transition-colors ak-duration-200"
                   onClick={() => setShowSettlement(false)}
                 >
                   <svg className="ak-w-6 ak-h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1033,23 +1040,23 @@ export default function PokerGroupPage() {
               <div className="ak-max-h-[calc(90vh-120px)] ak-overflow-hidden ak-flex ak-flex-col">
                 
                 {/* Statistics Grid */}
-                <div className="ak-px-6 ak-py-4 ak-border-b ak-border-gray-200 ak-bg-gray-50">
+                <div className="ak-px-6 ak-py-4 ak-border-b ak-border-gray-600 ak-bg-gray-750">
                   <div className="ak-grid ak-grid-cols-3 ak-gap-4">
-                    <div className="ak-bg-blue-50 ak-p-4 ak-rounded-lg ak-text-center ak-border ak-border-blue-100">
-                      <div className="ak-text-sm ak-text-blue-600 ak-font-medium ak-mb-1">总筹码</div>
-                      <div className="ak-text-2xl ak-font-bold ak-text-blue-900">
+                    <div className="ak-bg-blue-800/30 ak-p-4 ak-rounded-lg ak-text-center ak-border ak-border-blue-600/40">
+                      <div className="ak-text-sm ak-text-blue-300 ak-font-medium ak-mb-1">总筹码</div>
+                      <div className="ak-text-2xl ak-font-bold ak-text-blue-100">
                         {settlementData.totalChips.toLocaleString()}
                       </div>
                     </div>
-                    <div className="ak-bg-green-50 ak-p-4 ak-rounded-lg ak-text-center ak-border ak-border-green-100">
-                      <div className="ak-text-sm ak-text-green-600 ak-font-medium ak-mb-1">初始筹码</div>
-                      <div className="ak-text-2xl ak-font-bold ak-text-green-900">
+                    <div className="ak-bg-green-800/30 ak-p-4 ak-rounded-lg ak-text-center ak-border ak-border-green-600/40">
+                      <div className="ak-text-sm ak-text-green-300 ak-font-medium ak-mb-1">初始筹码</div>
+                      <div className="ak-text-2xl ak-font-bold ak-text-green-100">
                         {settlementData.totalBought.toLocaleString()}
                       </div>
                     </div>
-                    <div className="ak-bg-purple-50 ak-p-4 ak-rounded-lg ak-text-center ak-border ak-border-purple-100">
-                      <div className="ak-text-sm ak-text-purple-600 ak-font-medium ak-mb-1">游戏时长</div>
-                      <div className="ak-text-2xl ak-font-bold ak-text-purple-900">
+                    <div className="ak-bg-purple-800/30 ak-p-4 ak-rounded-lg ak-text-center ak-border ak-border-purple-600/40">
+                      <div className="ak-text-sm ak-text-purple-300 ak-font-medium ak-mb-1">游戏时长</div>
+                      <div className="ak-text-2xl ak-font-bold ak-text-purple-100">
                         {Math.round((new Date(settlementData.gameEndTime).getTime() - new Date(settlementData.gameStartTime).getTime()) / (1000 * 60))}分钟
                       </div>
                     </div>
@@ -1057,14 +1064,14 @@ export default function PokerGroupPage() {
                 </div>
                 
                 {/* Tabs Header */}
-                <div className="ak-px-6 ak-border-b ak-border-gray-200 ak-bg-white">
+                <div className="ak-px-6 ak-border-b ak-border-gray-600 ak-bg-gray-800">
                   <div className="ak-flex ak-space-x-0">
                     <button
                       onClick={() => setActiveTab('ranking')}
                       className={`ak-px-4 ak-py-3 ak-text-sm ak-font-medium ak-border-b-2 ak-transition-colors ak-duration-200 ak-flex ak-items-center ak-space-x-2 ${
                         activeTab === 'ranking'
-                          ? 'ak-border-blue-500 ak-text-blue-600 ak-bg-blue-50'
-                          : 'ak-border-transparent ak-text-gray-500 ak-hover:text-gray-700 ak-hover:bg-gray-50'
+                          ? 'ak-border-blue-400 ak-text-blue-300 ak-bg-blue-800/30'
+                          : 'ak-border-transparent ak-text-gray-400 ak-hover:text-gray-300 ak-hover:bg-gray-700/30'
                       }`}
                     >
                       <span>🏆</span>
@@ -1074,8 +1081,8 @@ export default function PokerGroupPage() {
                       onClick={() => setActiveTab('battle')}
                       className={`ak-px-4 ak-py-3 ak-text-sm ak-font-medium ak-border-b-2 ak-transition-colors ak-duration-200 ak-flex ak-items-center ak-space-x-2 ${
                         activeTab === 'battle'
-                          ? 'ak-border-blue-500 ak-text-blue-600 ak-bg-blue-50'
-                          : 'ak-border-transparent ak-text-gray-500 ak-hover:text-gray-700 ak-hover:bg-gray-50'
+                          ? 'ak-border-blue-400 ak-text-blue-300 ak-bg-blue-800/30'
+                          : 'ak-border-transparent ak-text-gray-400 ak-hover:text-gray-300 ak-hover:bg-gray-700/30'
                       }`}
                     >
                       <span>⚔️</span>
@@ -1085,8 +1092,8 @@ export default function PokerGroupPage() {
                       onClick={() => setActiveTab('records')}
                       className={`ak-px-4 ak-py-3 ak-text-sm ak-font-medium ak-border-b-2 ak-transition-colors ak-duration-200 ak-flex ak-items-center ak-space-x-2 ${
                         activeTab === 'records'
-                          ? 'ak-border-blue-500 ak-text-blue-600 ak-bg-blue-50'
-                          : 'ak-border-transparent ak-text-gray-500 ak-hover:text-gray-700 ak-hover:bg-gray-50'
+                          ? 'ak-border-blue-400 ak-text-blue-300 ak-bg-blue-800/30'
+                          : 'ak-border-transparent ak-text-gray-400 ak-hover:text-gray-300 ak-hover:bg-gray-700/30'
                       }`}
                     >
                       <span>📋</span>
@@ -1310,7 +1317,7 @@ export default function PokerGroupPage() {
               </div>
               
               {/* Modal Footer */}
-              <div className="ak-flex ak-justify-end ak-space-x-3 ak-px-6 ak-py-4 ak-border-t ak-border-gray-200 ak-bg-gray-50">
+              <div className="ak-flex ak-justify-end ak-space-x-3 ak-px-6 ak-py-4 ak-border-t ak-border-gray-600 ak-bg-gray-750">
                 <Button
                   variant="outline"
                   onClick={() => setShowSettlement(false)}
@@ -1332,6 +1339,7 @@ export default function PokerGroupPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       {showHeader && <Header />}
 
       {/* 主内容区 */}
-      <main className={cn('ak-min-h-[calc(100vh-3.5rem)] ak-overflow-auto', className)}>
+      <main className={cn('ak-min-h-[calc(100vh-3.5rem)] ak-overflow-auto  ak-bg-gradient-to-br ak-from-gray-900 ak-via-gray-800 ak-to-gray-900', className)}>
         <div className="ak-container ak-mx-auto ak-p-4 ak-space-y-6">
           {children}
         </div>
