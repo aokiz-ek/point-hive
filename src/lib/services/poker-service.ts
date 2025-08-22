@@ -104,7 +104,7 @@ class PokerService {
 
       const group = groupResult.data as any
 
-      // 2. 保存扑克专用设置到 groups 表的 metadata 字段
+      // 2. 保存Poker专用设置到 groups 表的 metadata 字段
       const pokerSettings: PokerGameSettings = {
         gameType: formData.gameType,
         smallBlind: formData.smallBlind,
@@ -157,16 +157,16 @@ class PokerService {
         }
       }
     } catch (error) {
-      console.error('创建扑克群组失败:', error)
+      console.error('创建Poker群组失败:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : '创建扑克群组失败'
+        error: error instanceof Error ? error.message : '创建Poker群组失败'
       }
     }
   }
 
   /**
-   * 获取扑克群组详情
+   * 获取Poker群组详情
    */
   async getPokerGroup(groupId: string): Promise<PokerServiceResponse> {
     try {
@@ -179,7 +179,7 @@ class PokerService {
 
       const group = groupResult.data as any
 
-      // 获取扑克专用设置
+      // 获取Poker专用设置
       const { data: groupData, error } = await this.supabase
         .from('groups')
         .select('metadata')
@@ -202,13 +202,13 @@ class PokerService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取扑克群组失败'
+        error: error instanceof Error ? error.message : '获取Poker群组失败'
       }
     }
   }
 
   /**
-   * 更新扑克游戏设置
+   * 更新Poker游戏设置
    */
   async updatePokerSettings(groupId: string, settings: PokerGameSettings): Promise<PokerServiceResponse> {
     try {
@@ -229,7 +229,7 @@ class PokerService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '更新扑克设置失败'
+        error: error instanceof Error ? error.message : '更新Poker设置失败'
       }
     }
   }
@@ -297,7 +297,7 @@ class PokerService {
   }
 
   /**
-   * 获取群组的所有扑克交易记录
+   * 获取群组的所有Poker交易记录
    */
   async getPokerTransactions(groupId: string): Promise<PokerServiceResponse> {
     try {
@@ -336,7 +336,7 @@ class PokerService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取扑克交易记录失败'
+        error: error instanceof Error ? error.message : '获取Poker交易记录失败'
       }
     }
   }
@@ -436,7 +436,7 @@ class PokerService {
   }
 
   /**
-   * 结束扑克游戏
+   * 结束Poker游戏
    */
   async finishPokerGame(groupId: string): Promise<PokerServiceResponse> {
     try {
@@ -469,13 +469,13 @@ class PokerService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '结束扑克游戏失败'
+        error: error instanceof Error ? error.message : '结束Poker游戏失败'
       }
     }
   }
 
   /**
-   * 获取预设扑克玩家列表
+   * 获取预设Poker玩家列表
    */
   async getPresetPlayers(): Promise<PokerServiceResponse> {
     try {
@@ -512,7 +512,7 @@ class PokerService {
   }
 
   /**
-   * 获取扑克游戏统计数据
+   * 获取Poker游戏统计数据
    */
   async getPokerStats(groupId: string): Promise<PokerServiceResponse> {
     try {
@@ -543,7 +543,7 @@ class PokerService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取扑克统计失败'
+        error: error instanceof Error ? error.message : '获取Poker统计失败'
       }
     }
   }

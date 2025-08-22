@@ -267,7 +267,7 @@ export default function CreatePokerGroupPage() {
     setLoading(true);
 
     try {
-      // 使用 localStorage 创建扑克群组
+      // 使用 localStorage 创建Poker群组
       const result = await localPokerService.createPokerGroup(user.id, formData, players);
       
       if (!result.success) {
@@ -275,7 +275,7 @@ export default function CreatePokerGroupPage() {
         return;
       }
 
-      // 跳转到DZ扑克专用管理页面
+      // 跳转到DZPoker专用管理页面
       router.push(`/groups/poker/${result.data.id}`);
       
     } catch (error) {

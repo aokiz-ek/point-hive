@@ -108,7 +108,7 @@ class LocalPokerService {
         pointsBalance: formData.initialChips
       }
 
-      // 2. 创建扑克专用设置
+      // 2. 创建Poker专用设置
       const pokerSettings: PokerGameSettings = {
         gameType: formData.gameType,
         smallBlind: formData.smallBlind,
@@ -177,16 +177,16 @@ class LocalPokerService {
         }
       }
     } catch (error) {
-      console.error('创建扑克群组失败:', error)
+      console.error('创建Poker群组失败:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : '创建扑克群组失败'
+        error: error instanceof Error ? error.message : '创建Poker群组失败'
       }
     }
   }
 
   /**
-   * 获取扑克群组详情 (localStorage版本)
+   * 获取Poker群组详情 (localStorage版本)
    */
   async getPokerGroup(groupId: string): Promise<PokerServiceResponse> {
     try {
@@ -209,7 +209,7 @@ class LocalPokerService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取扑克群组失败'
+        error: error instanceof Error ? error.message : '获取Poker群组失败'
       }
     }
   }
@@ -275,7 +275,7 @@ class LocalPokerService {
   }
 
   /**
-   * 获取群组的所有扑克交易记录 (localStorage版本)
+   * 获取群组的所有Poker交易记录 (localStorage版本)
    */
   async getPokerTransactions(groupId: string): Promise<PokerServiceResponse> {
     try {
@@ -291,7 +291,7 @@ class LocalPokerService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '获取扑克交易记录失败'
+        error: error instanceof Error ? error.message : '获取Poker交易记录失败'
       }
     }
   }
@@ -391,7 +391,7 @@ class LocalPokerService {
   }
 
   /**
-   * 结束扑克游戏 (localStorage版本)
+   * 结束Poker游戏 (localStorage版本)
    */
   async finishPokerGame(groupId: string): Promise<PokerServiceResponse> {
     try {
@@ -429,7 +429,7 @@ class LocalPokerService {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : '结束扑克游戏失败'
+        error: error instanceof Error ? error.message : '结束Poker游戏失败'
       }
     }
   }

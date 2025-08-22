@@ -402,7 +402,7 @@ export default function PokerGroupPage() {
       players.forEach(toPlayer => {
         const toId = toPlayer.isCreator ? user?.id : toPlayer.id;
         if (toId && fromId !== toId && playerVsPlayer[fromId]) {
-          playerVsPlayer[fromId][toId] = 0;
+          playerVsPlayer[fromId]![toId] = 0;
         }
       });
     });
@@ -412,7 +412,7 @@ export default function PokerGroupPage() {
       const fromId = transaction.fromUserId;
       const toId = transaction.toUserId;
       
-      if (playerVsPlayer[fromId] && playerVsPlayer[fromId][toId] !== undefined) {
+      if (playerVsPlayer[fromId] && playerVsPlayer[fromId]![toId] !== undefined) {
         playerVsPlayer[fromId]![toId] += transaction.amount;
       }
     });
