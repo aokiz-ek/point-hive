@@ -288,7 +288,7 @@ export default function CreatePokerGroupPage() {
 
   return (
     <div className="ak-min-h-screen ak-bg-gradient-to-br ak-from-gray-900 ak-via-gray-800 ak-to-gray-900">
-      <div className="ak-space-y-6 sm:ak-space-y-8 ak-max-w-6xl ak-mx-auto ak-px-4 sm:ak-px-6 lg:ak-px-8 ak-pt-8">
+      <div className="ak-space-y-6 sm:ak-space-y-8 ak-max-w-6xl ak-mx-auto ak-px-4 sm:ak-px-6 lg:ak-px-8 ak-pt-8 ak-pb-24">
         {/* 页面标题 */}
         <div className="ak-text-center ak-py-4 sm:ak-py-6">
           <div className="ak-relative ak-mb-4">
@@ -598,38 +598,42 @@ export default function CreatePokerGroupPage() {
             <p className="ak-text-sm ak-text-red-400">{errors.submit}</p>
           </div>
         )}
-
-        {/* 提交按钮 */}
-        <div className="ak-flex ak-flex-col sm:ak-flex-row ak-justify-center ak-gap-3 sm:ak-space-x-4 sm:ak-space-y-0 ak-pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            size="lg"
-            className="ak-w-full sm:ak-w-auto ak-min-w-[120px] ak-min-h-[48px] ak-bg-gray-700 ak-border-gray-500/30 ak-text-gray-300 ak-hover:ak-bg-gray-600 ak-hover:ak-border-gray-400 ak-hover:ak-text-gray-200"
-          >
-            取消
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={loading} 
-            size="lg" 
-            className="ak-w-full sm:ak-w-auto ak-min-w-[140px] ak-min-h-[48px] ak-bg-gradient-to-r ak-from-amber-500 ak-via-amber-400 ak-to-amber-500 ak-hover:ak-from-amber-600 ak-hover:ak-via-amber-500 ak-hover:ak-to-amber-600 ak-text-gray-900 ak-font-bold ak-shadow-xl ak-shadow-amber-500/30 ak-border ak-border-amber-400"
-          >
-            {loading ? (
-              <div className="ak-flex ak-items-center ak-space-x-2">
-                <div className="ak-w-4 ak-h-4 ak-border-2 ak-border-gray-900 ak-border-t-transparent ak-rounded-full ak-animate-spin"></div>
-                <span>创建中...</span>
-              </div>
-            ) : (
-              <>
-                <span className="ak-hidden sm:ak-inline">🚀 开始游戏</span>
-                <span className="sm:ak-hidden">🚀 开始</span>
-              </>
-            )}
-          </Button>
-        </div>
       </form>
+      </div>
+
+      {/* 悬浮在底部的提交按钮 */}
+      <div className="ak-fixed ak-bottom-0 ak-left-0 ak-right-0 ak-bg-gradient-to-t ak-from-gray-900 ak-via-gray-900/95 ak-to-transparent ak-pt-6 ak-pb-4 ak-px-4 sm:ak-px-6 ak-border-t ak-border-gray-700/50 ak-backdrop-blur-sm">
+        <div className="ak-max-w-6xl ak-mx-auto">
+          <div className="ak-flex ak-flex-col sm:ak-flex-row ak-justify-center ak-gap-3 sm:ak-space-x-4 sm:ak-space-y-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              size="lg"
+              className="ak-w-full sm:ak-w-auto ak-min-w-[120px] ak-min-h-[48px] ak-bg-gray-700 ak-border-gray-500/30 ak-text-gray-300 ak-hover:ak-bg-gray-600 ak-hover:ak-border-gray-400 ak-hover:ak-text-gray-200"
+            >
+              取消
+            </Button>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={loading} 
+              size="lg" 
+              className="ak-w-full sm:ak-w-auto ak-min-w-[140px] ak-min-h-[48px] ak-bg-gradient-to-r ak-from-amber-500 ak-via-amber-400 ak-to-amber-500 ak-hover:ak-from-amber-600 ak-hover:ak-via-amber-500 ak-hover:ak-to-amber-600 ak-text-gray-900 ak-font-bold ak-shadow-xl ak-shadow-amber-500/30 ak-border ak-border-amber-400"
+            >
+              {loading ? (
+                <div className="ak-flex ak-items-center ak-space-x-2">
+                  <div className="ak-w-4 ak-h-4 ak-border-2 ak-border-gray-900 ak-border-t-transparent ak-rounded-full ak-animate-spin"></div>
+                  <span>创建中...</span>
+                </div>
+              ) : (
+                <>
+                  <span className="ak-hidden sm:ak-inline">🚀 开始游戏</span>
+                  <span className="sm:ak-hidden">🚀 开始</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
