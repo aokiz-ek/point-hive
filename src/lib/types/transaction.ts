@@ -14,6 +14,7 @@ export interface Transaction {
   status: TransactionStatus;
   description?: string;
   dueDate?: string;
+  completedAt?: string;
   returnedAt?: string;
   returnedAmount?: number;
   fee?: number;
@@ -48,6 +49,12 @@ export interface TransactionMetadata {
   tags?: string[];
   priority?: 'low' | 'normal' | 'high' | 'urgent';
   transferType?: 'win' | 'loan'; // 用于扑克游戏：区分赢得筹码和借出筹码
+  isPartialReturn?: boolean; // 用于退还交易：是否为部分退还
+  originalAmount?: number; // 用于退还交易：原始交易金额
+  type?: string; // 用于结算交易：结算类型
+  settlementId?: string; // 用于结算交易：结算ID
+  originalTransactions?: number; // 用于结算交易：原始交易数量
+  rejectionReason?: string; // 用于交易被拒绝时的原因
 }
 
 export interface PendingRequest {
@@ -87,6 +94,7 @@ export interface TransferRequest {
   description?: string;
   dueDate?: string;
   priority?: 'normal' | 'urgent';
+  immediate?: boolean;
 }
 
 export interface ReturnRequest {
@@ -106,6 +114,7 @@ export interface TransactionFilter {
   maxAmount?: number;
   sortBy?: 'amount' | 'date' | 'status';
   sortOrder?: 'asc' | 'desc';
+  page?: number;
   limit?: number;
   offset?: number;
 }
@@ -160,6 +169,25 @@ export interface ReminderSchedule {
   days: number;
   methods: ('push' | 'email' | 'sms')[];
   message?: string;
+}
+
+export interface CreateTransactionData {
+  fromUserId: string;
+  toUserId: string;
+  groupId: string;
+  amount: number;
+  description?: string;
+  type?: TransactionType;
+  dueDate?: string;
+  immediate?: boolean;
+}
+
+export interface UpdateTransactionData {
+  status?: TransactionStatus;
+  description?: string;
+  dueDate?: string;
+  completedAt?: string;
+  metadata?: Partial<TransactionMetadata>;
 }
 
 export interface TransactionReceipt {

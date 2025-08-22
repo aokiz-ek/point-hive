@@ -12,8 +12,8 @@ export default function TransactionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   
   // 使用真实的 API 数据
-  const { data: transactionsData, isLoading: isLoadingTransactions, error: transactionsError } = useTransactions();
-  const { data: summaryData, isLoading: isLoadingSummary, error: summaryError } = useTransactionSummary();
+  const { transactions: transactionsData, loading: isLoadingTransactions, error: transactionsError } = useTransactions();
+  const { summary: summaryData, loading: isLoadingSummary, error: summaryError } = useTransactionSummary();
   
   const transactions = transactionsData || [];
   const summary = summaryData || {

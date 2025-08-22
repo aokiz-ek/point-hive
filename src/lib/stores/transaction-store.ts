@@ -53,11 +53,23 @@ export const useTransactionStore = create<TransactionStore>()(
           throw new Error('用户未登录');
         }
 
+        // Map filter type to service type
+        let serviceType: 'all' | 'sent' | 'received' = 'all';
+        if (filter?.type === 'transfer' || filter?.type === 'return') {
+          serviceType = 'all'; // For now, map all transaction types to 'all'
+        }
+
+        // Map filter status to service status
+        let serviceStatus: 'all' | 'pending' | 'completed' | 'rejected' = 'all';
+        if (filter?.status === 'pending' || filter?.status === 'completed' || filter?.status === 'rejected') {
+          serviceStatus = filter.status;
+        }
+
         const options = {
           page: filter?.page,
           limit: filter?.limit,
-          type: filter?.type,
-          status: filter?.status,
+          type: serviceType,
+          status: serviceStatus,
           groupId: filter?.groupId,
         };
 

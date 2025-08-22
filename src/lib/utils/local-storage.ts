@@ -55,7 +55,7 @@ export class LocalStorage {
     const groups = this.getGroups();
     const index = groups.findIndex(g => g.id === groupId);
     if (index !== -1) {
-      groups[index] = { ...groups[index], ...updates };
+      groups[index] = { ...groups[index], ...updates } as Group;
       this.setGroups(groups);
     }
   }
@@ -84,7 +84,7 @@ export class LocalStorage {
     const transactions = this.getTransactions();
     const index = transactions.findIndex(t => t.id === transactionId);
     if (index !== -1) {
-      transactions[index] = { ...transactions[index], ...updates };
+      transactions[index] = { ...transactions[index], ...updates } as Transaction;
       this.setTransactions(transactions);
     }
   }
@@ -110,7 +110,7 @@ export class LocalStorage {
   static addNotification(notification: Notification): void {
     const notifications = this.getNotifications();
     notifications.unshift(notification); // 添加到开头
-    this.setGroups(notifications.slice(0, 100)); // 最多保留100条
+    this.setNotifications(notifications.slice(0, 100)); // 最多保留100条
   }
 
   static markNotificationRead(notificationId: string): void {

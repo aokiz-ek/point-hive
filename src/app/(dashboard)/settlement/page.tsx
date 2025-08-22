@@ -91,8 +91,8 @@ export default function SettlementPage() {
       }
 
       // 转出方减少余额，转入方增加余额
-      balances[transaction.fromUserId] -= transaction.amount;
-      balances[transaction.toUserId] += transaction.amount;
+      balances[transaction.fromUserId] = (balances[transaction.fromUserId] || 0) - transaction.amount;
+      balances[transaction.toUserId] = (balances[transaction.toUserId] || 0) + transaction.amount;
     });
 
     // 构建节点
@@ -100,7 +100,7 @@ export default function SettlementPage() {
       .filter(([_, balance]) => Math.abs(balance) > 0.01) // 忽略小额余额
       .map(([userId, balance]) => ({
         userId,
-        userName: userNames[userId],
+        userName: userNames[userId] || `用户${userId}`,
         balance: Math.round(balance * 100) / 100 // 保留两位小数
       }));
 
@@ -115,6 +115,8 @@ export default function SettlementPage() {
     while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
       const creditor = creditors[creditorIndex];
       const debtor = debtors[debtorIndex];
+      
+      if (!creditor || !debtor) break;
 
       const amount = Math.min(creditor.balance, -debtor.balance);
 
@@ -170,7 +172,7 @@ export default function SettlementPage() {
         groupId: selectedGroup.id,
         groupName: selectedGroup.name,
         initiatorId: user.id,
-        initiatorName: user.nickname || user.name,
+        initiatorName: user.nickname || '用户',
         description: `群组 "${selectedGroup.name}" 统一结算`,
         status: 'completed' as const,
         transactions: settlementResult.edges.map(edge => ({
@@ -211,6 +213,7 @@ export default function SettlementPage() {
           status: 'completed',
           description: `统一结算 - ${selectedGroup.name}`,
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           groupId: selectedGroup.id,
           metadata: {
             type: 'settlement',
@@ -231,8 +234,9 @@ export default function SettlementPage() {
             message: `群组 "${selectedGroup.name}" 已完成统一结算`,
             userId: node.userId,
             read: false,
+            isRead: false,
             createdAt: new Date().toISOString(),
-            metadata: {
+            data: {
               groupId: selectedGroup.id,
               settlementId: settlement.id,
               userBalance: node.balance

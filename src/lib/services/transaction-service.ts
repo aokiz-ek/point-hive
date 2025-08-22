@@ -4,7 +4,7 @@ import type { Transaction, CreateTransactionData, UpdateTransactionData, Pending
 
 export interface TransactionServiceResponse {
   success: boolean
-  data?: Transaction | Transaction[] | PendingRequest[]
+  data?: Transaction | Transaction[] | PendingRequest[] | any
   error?: string
   meta?: {
     total?: number
@@ -95,25 +95,7 @@ class TransactionService {
         completedAt: item.completed_at,
         createdAt: item.created_at,
         updatedAt: item.updated_at,
-        fromUser: {
-          id: item.from_user.id,
-          username: item.from_user.username,
-          fullName: item.from_user.full_name,
-          avatarUrl: item.from_user.avatar_url,
-          creditScore: item.from_user.credit_score,
-        },
-        toUser: {
-          id: item.to_user.id,
-          username: item.to_user.username,
-          fullName: item.to_user.full_name,
-          avatarUrl: item.to_user.avatar_url,
-          creditScore: item.to_user.credit_score,
-        },
-        group: {
-          id: item.groups.id,
-          name: item.groups.name,
-          inviteCode: item.groups.invite_code,
-        },
+        metadata: item.metadata || {},
       }))
 
       return { 
@@ -191,6 +173,7 @@ class TransactionService {
         completedAt: transaction.completed_at,
         createdAt: transaction.created_at,
         updatedAt: transaction.updated_at,
+        metadata: transaction.metadata || {},
       }
 
       return { success: true, data: newTransaction }
@@ -228,6 +211,7 @@ class TransactionService {
         completedAt: data.completed_at,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
+        metadata: data.metadata || {},
       }
 
       return { success: true, data: transaction }
@@ -363,27 +347,16 @@ class TransactionService {
 
       const pendingRequests: PendingRequest[] = data.map(item => ({
         id: item.id,
+        transactionId: item.id,
         fromUserId: item.from_user_id,
         toUserId: item.to_user_id,
-        groupId: item.group_id,
         amount: item.amount,
         description: item.description || '',
-        type: item.type,
         dueDate: item.due_date,
+        expiresAt: item.due_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        status: 'waiting' as const,
+        reminderCount: 0,
         createdAt: item.created_at,
-        fromUser: {
-          id: item.from_user.id,
-          username: item.from_user.username,
-          fullName: item.from_user.full_name,
-          avatarUrl: item.from_user.avatar_url,
-          creditScore: item.from_user.credit_score,
-          balance: item.from_user.balance,
-        },
-        group: {
-          id: item.groups.id,
-          name: item.groups.name,
-          inviteCode: item.groups.invite_code,
-        },
       }))
 
       return { success: true, data: pendingRequests }
@@ -451,15 +424,15 @@ class TransactionService {
       switch (type) {
         case 'transfer_request':
           title = '新的积分转移请求'
-          message = `${transaction.from_user.username} 向您请求转移 ${transaction.amount} 积分`
+          message = `${(transaction.from_user as any)?.username || '用户'} 向您请求转移 ${transaction.amount} 积分`
           break
         case 'transfer_completed':
           title = '积分转移已完成'
-          message = `您向 ${transaction.to_user.username} 转移的 ${transaction.amount} 积分已完成`
+          message = `您向 ${(transaction.to_user as any)?.username || '用户'} 转移的 ${transaction.amount} 积分已完成`
           break
         case 'transfer_rejected':
           title = '积分转移被拒绝'
-          message = `您向 ${transaction.to_user.username} 的积分转移请求被拒绝`
+          message = `您向 ${(transaction.to_user as any)?.username || '用户'} 的积分转移请求被拒绝`
           break
       }
 

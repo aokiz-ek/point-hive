@@ -49,22 +49,36 @@ class GroupService {
         return { success: false, error: error.message }
       }
 
-      const groups: Group[] = data.map(item => ({
+      const groups: Group[] = (data as any[]).map((item: any) => ({
         id: item.groups.id,
         name: item.groups.name,
         description: item.groups.description || '',
-        type: item.groups.group_type,
         ownerId: item.groups.owner_id,
-        maxMembers: item.groups.max_members,
-        currentMembers: item.groups.current_members,
+        adminIds: [], // TODO: 从数据库获取
+        memberIds: [], // TODO: 从数据库获取
         inviteCode: item.groups.invite_code,
+        maxMembers: item.groups.max_members,
+        totalPoints: item.groups.initial_points || 0,
         rules: item.groups.rules,
-        isActive: item.groups.is_active,
+        settings: {
+          autoAcceptTransfers: false,
+          notificationSound: true,
+          showMemberActivity: true,
+          allowMemberInvite: true,
+          requireVerifiedEmail: false,
+          requireVerifiedPhone: false,
+          enableCreditLimit: true,
+          enableTimeLimit: false,
+        },
+        status: item.groups.is_active ? 'active' : 'inactive',
+        tags: [],
+        isPublic: item.groups.is_public || false,
         createdAt: item.groups.created_at,
         updatedAt: item.groups.updated_at,
-        members: [], // 将通过单独的查询获取
+        // Additional computed properties
+        currentMembers: item.groups.current_members,
+        isActive: item.groups.is_active,
         userRole: item.role,
-        joinedAt: item.joined_at,
         pointsBalance: item.points_balance,
       }))
 
@@ -121,38 +135,85 @@ class GroupService {
         return { success: false, error: membersError.message }
       }
 
-      const groupMembers: GroupMember[] = members.map(member => ({
-        id: member.id,
+      const groupMembers: GroupMember[] = (members as any[]).map((member: any) => ({
         userId: member.user_id,
-        groupId: groupId,
-        role: member.role,
-        joinedAt: member.joined_at,
-        pointsBalance: member.points_balance,
         user: {
           id: member.users.id,
-          username: member.users.username,
-          fullName: member.users.full_name,
-          avatarUrl: member.users.avatar_url,
-          creditScore: member.users.credit_score,
-          balance: member.users.balance,
-          isOnline: member.users.is_online,
-        }
+          email: member.users.email || '',
+          nickname: member.users.username || 'User',
+          avatar: member.users.avatar_url,
+          phone: member.users.phone,
+          bio: member.users.bio,
+          balance: member.users.balance || 0,
+          creditScore: member.users.credit_score || 0,
+          totalTransactions: 0, // TODO: 从交易记录计算
+          onTimeRate: 100, // TODO: 从交易记录计算
+          joinedGroups: [], // TODO: 从群组成员关系计算
+          isEmailVerified: member.users.is_email_verified || false,
+          isPhoneVerified: member.users.is_phone_verified || false,
+          preferences: {
+            language: 'zh-CN',
+            theme: 'system',
+            notifications: {
+              emailNotifications: true,
+              smsNotifications: false,
+              pushNotifications: true,
+              transferRequests: true,
+              returnReminders: true,
+              creditUpdates: true,
+              groupUpdates: true,
+            },
+            privacy: {
+              showRealName: true,
+              showPhone: false,
+              showEmail: false,
+              showCreditScore: false,
+              allowFriendRequests: true,
+            },
+          },
+          createdAt: member.users.created_at || new Date().toISOString(),
+          updatedAt: member.users.updated_at || new Date().toISOString(),
+        },
+        role: member.role,
+        joinedAt: member.joined_at,
+        balance: member.points_balance || 0,
+        totalTransferred: 0, // TODO: 从交易记录计算
+        totalReceived: 0, // TODO: 从交易记录计算
+        totalReturned: 0, // TODO: 从交易记录计算
+        pendingAmount: 0, // TODO: 从交易记录计算
+        isActive: member.is_active !== false,
+        lastActivity: member.last_activity || member.joined_at,
       }))
 
       const group: Group = {
-        id: data.id,
-        name: data.name,
-        description: data.description || '',
-        type: data.group_type,
-        ownerId: data.owner_id,
-        maxMembers: data.max_members,
-        currentMembers: data.current_members,
-        inviteCode: data.invite_code,
-        rules: data.rules,
-        isActive: data.is_active,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        members: groupMembers,
+        id: (data as any).id,
+        name: (data as any).name,
+        description: (data as any).description || '',
+        ownerId: (data as any).owner_id,
+        adminIds: [], // TODO: 从数据库获取
+        memberIds: [], // TODO: 从数据库获取
+        inviteCode: (data as any).invite_code,
+        maxMembers: (data as any).max_members,
+        totalPoints: (data as any).initial_points || 0,
+        rules: (data as any).rules,
+        settings: {
+          autoAcceptTransfers: false,
+          notificationSound: true,
+          showMemberActivity: true,
+          allowMemberInvite: true,
+          requireVerifiedEmail: false,
+          requireVerifiedPhone: false,
+          enableCreditLimit: true,
+          enableTimeLimit: false,
+        },
+        status: (data as any).is_active ? 'active' : 'inactive',
+        tags: [],
+        isPublic: (data as any).is_public || false,
+        createdAt: (data as any).created_at,
+        updatedAt: (data as any).updated_at,
+        // Additional computed properties
+        currentMembers: (data as any).current_members,
+        isActive: (data as any).is_active,
       }
 
       return { success: true, data: group }
@@ -214,18 +275,32 @@ class GroupService {
         id: group.id,
         name: group.name,
         description: group.description || '',
-        type: group.group_type,
         ownerId: group.owner_id,
-        maxMembers: group.max_members,
-        currentMembers: group.current_members,
+        adminIds: [], // TODO: 从数据库获取
+        memberIds: [], // TODO: 从数据库获取
         inviteCode: group.invite_code,
+        maxMembers: group.max_members,
+        totalPoints: groupData.initialPoints || 0,
         rules: group.rules,
-        isActive: group.is_active,
+        settings: {
+          autoAcceptTransfers: false,
+          notificationSound: true,
+          showMemberActivity: true,
+          allowMemberInvite: true,
+          requireVerifiedEmail: false,
+          requireVerifiedPhone: false,
+          enableCreditLimit: true,
+          enableTimeLimit: false,
+        },
+        status: group.is_active ? 'active' : 'inactive',
+        tags: [],
+        isPublic: group.is_public || false,
         createdAt: group.created_at,
         updatedAt: group.updated_at,
-        members: [], // 新创建的群组暂时没有其他成员
+        // Additional computed properties
+        currentMembers: group.current_members,
+        isActive: group.is_active,
         userRole: 'owner',
-        joinedAt: new Date().toISOString(),
         pointsBalance: groupData.initialPoints || 0,
       }
 
@@ -257,18 +332,34 @@ class GroupService {
       }
 
       const group: Group = {
-        id: data.id,
-        name: data.name,
-        description: data.description || '',
-        type: data.group_type,
-        ownerId: data.owner_id,
-        maxMembers: data.max_members,
-        currentMembers: data.current_members,
-        inviteCode: data.invite_code,
-        rules: data.rules,
-        isActive: data.is_active,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
+        id: (data as any).id,
+        name: (data as any).name,
+        description: (data as any).description || '',
+        ownerId: (data as any).owner_id,
+        adminIds: [], // TODO: 从数据库获取
+        memberIds: [], // TODO: 从数据库获取
+        inviteCode: (data as any).invite_code,
+        maxMembers: (data as any).max_members,
+        totalPoints: (data as any).initial_points || 0,
+        rules: (data as any).rules,
+        settings: {
+          autoAcceptTransfers: false,
+          notificationSound: true,
+          showMemberActivity: true,
+          allowMemberInvite: true,
+          requireVerifiedEmail: false,
+          requireVerifiedPhone: false,
+          enableCreditLimit: true,
+          enableTimeLimit: false,
+        },
+        status: (data as any).is_active ? 'active' : 'inactive',
+        tags: [],
+        isPublic: (data as any).is_public || false,
+        createdAt: (data as any).created_at,
+        updatedAt: (data as any).updated_at,
+        // Additional computed properties
+        currentMembers: (data as any).current_members,
+        isActive: (data as any).is_active,
       }
 
       return { success: true, data: group }
@@ -424,7 +515,7 @@ class GroupService {
         return { success: false, error: error.message }
       }
 
-      const members: GroupMember[] = data.map(member => ({
+      const members: GroupMember[] = (data as any).map((member: any) => ({
         id: member.id,
         userId: member.user_id,
         groupId: groupId,

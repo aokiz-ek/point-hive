@@ -264,7 +264,7 @@ export default function GroupDetailPage() {
               </div>
               <div className="ak-flex ak-justify-between ak-text-sm">
                 <span className="ak-text-gray-600">信用要求</span>
-                <span className="ak-font-medium">{group.rules?.creditScoreThreshold || 600}+ 分</span>
+                <span className="ak-font-medium">{group.rules?.creditRequirement || 600}+ 分</span>
               </div>
             </div>
           </Card>

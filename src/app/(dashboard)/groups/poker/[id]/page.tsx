@@ -137,6 +137,7 @@ export default function PokerGroupPage() {
         // 创建循环借贷场景
         if (players.length >= 3) {
           const player3 = players[2];
+          if (!player3) return; // TypeScript safety check
           const player3Id = player3.isCreator ? user.id : player3.id;
           
           createTestTransaction(wadeId, tomasId, 500, '测试：Wade→Tomas', 'loan');
@@ -155,7 +156,7 @@ export default function PokerGroupPage() {
           setTimeout(() => {
             const randomFrom = players[Math.floor(Math.random() * players.length)];
             const randomTo = players[Math.floor(Math.random() * players.length)];
-            if (randomFrom.id !== randomTo.id) {
+            if (randomFrom && randomTo && randomFrom.id !== randomTo.id) {
               const fromId = randomFrom.isCreator ? user.id : randomFrom.id;
               const toId = randomTo.isCreator ? user.id : randomTo.id;
               const amount = Math.floor(Math.random() * 1000) + 100;
@@ -393,14 +394,14 @@ export default function PokerGroupPage() {
       playerVsPlayer[fromId] = {};
       players.forEach(toPlayer => {
         const toId = toPlayer.isCreator ? user?.id : toPlayer.id;
-        if (toId && fromId !== toId) {
+        if (toId && fromId !== toId && playerVsPlayer[fromId]) {
           playerVsPlayer[fromId][toId] = 0;
         }
       });
     });
     
     // 统计赢得记录（只统计赢得类型的交易）
-    winTransactions.forEach(transaction => {
+    winTransactions.forEach((transaction: Transaction) => {
       const fromId = transaction.fromUserId;
       const toId = transaction.toUserId;
       
@@ -448,7 +449,7 @@ export default function PokerGroupPage() {
     }).filter(Boolean);
     
     // 按最终净利润排序，而不是按转移净收益排序
-    return playerStats.sort((a, b) => b.netResult - a.netResult);
+    return playerStats.filter((player): player is NonNullable<typeof player> => player !== null).sort((a, b) => b.netResult - a.netResult);
   };
 
   // 计算结算数据

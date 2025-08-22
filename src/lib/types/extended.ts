@@ -32,6 +32,8 @@ export type NotificationType =
   | 'transfer_approved'
   | 'transfer_rejected'
   | 'return_reminder'
+  | 'return_completed'
+  | 'settlement_completed'
   | 'credit_updated'
   | 'group_invite'
   | 'system_message'

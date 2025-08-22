@@ -7,6 +7,29 @@ import { useAuth } from '@/lib/hooks';
 import { LocalStorage, generateId, formatDate } from '@/lib/utils/local-storage';
 import type { Rating, Transaction } from '@/lib/types';
 
+// 通用的星级评分渲染函数
+const renderStars = (score: number, interactive = false, onScoreChange?: (score: number) => void) => {
+  return (
+    <div className="ak-flex ak-space-x-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type={interactive ? "button" : undefined}
+          className={`ak-text-2xl ak-transition-colors ${
+            interactive ? 'hover:ak-text-yellow-400 ak-cursor-pointer' : 'ak-cursor-default'
+          } ${
+            star <= score ? 'ak-text-yellow-500' : 'ak-text-gray-300'
+          }`}
+          onClick={interactive && onScoreChange ? () => onScoreChange(star) : undefined}
+          disabled={!interactive}
+        >
+          ⭐
+        </button>
+      ))}
+    </div>
+  );
+};
+
 export default function RatingsPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -116,7 +139,7 @@ export default function RatingsPage() {
     const distribution = [0, 0, 0, 0, 0];
     ratingsList.forEach(r => {
       const index = r.score - 1;
-      if (index >= 0 && index < 5) {
+      if (index >= 0 && index < 5 && distribution[index] !== undefined) {
         distribution[index]++;
       }
     });

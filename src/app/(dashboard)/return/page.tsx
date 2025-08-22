@@ -21,6 +21,7 @@ interface ReturnTransaction {
   groupId?: string;
   isOverdue: boolean;
   daysOverdue?: number;
+  returnedAt?: string;
 }
 
 export default function ReturnPage() {
@@ -144,8 +145,9 @@ export default function ReturnPage() {
         status: 'completed',
         description: returnNote || `归还 - ${selectedTransaction.description}`,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         returnedAt: new Date().toISOString(),
-        groupId: selectedTransaction.groupId,
+        groupId: selectedTransaction.groupId || '',
         metadata: {
           originalTransactionId: selectedTransaction.originalTransactionId,
           isPartialReturn: amount < selectedTransaction.amount,
@@ -167,11 +169,12 @@ export default function ReturnPage() {
         id: generateId(),
         type: 'return_completed' as const,
         title: '积分已归还',
-        message: `${user.nickname || user.name} 归还了 ${amount} 积分`,
+        message: `${user.nickname || '用户'} 归还了 ${amount} 积分`,
         userId: selectedTransaction.fromUserId,
         read: false,
+        isRead: false,
         createdAt: new Date().toISOString(),
-        metadata: {
+        data: {
           transactionId: returnTransaction.id,
           originalTransactionId: selectedTransaction.originalTransactionId,
           amount: amount

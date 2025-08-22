@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { groupService } from './group-service'
 import { transactionService } from './transaction-service'
-import type { CreateGroupData, Transaction, CreateTransactionData } from '@/lib/types'
+import type { CreateGroupData, Transaction } from '@/lib/types'
 
 export interface PokerPlayer {
   id: string
@@ -78,7 +78,7 @@ class PokerService {
       const groupData: CreateGroupData = {
         name: `🃏 ${formData.tableName}`,
         description: `DZ扑克 ${formData.gameType === 'cash' ? '现金桌' : '锦标赛'} - ${formData.smallBlind}/${formData.bigBlind} 盲注`,
-        type: 'poker',
+        type: 'custom',
         maxMembers: formData.maxPlayers,
         initialPoints: formData.initialChips,
         rules: {
@@ -126,16 +126,6 @@ class PokerService {
 
       // 3. 为每个玩家创建初始筹码交易记录
       for (const player of players) {
-        const transactionData: CreateTransactionData = {
-          fromUserId: 'system',
-          toUserId: player.isCreator ? ownerId : (player.userId || player.id),
-          groupId: group.id,
-          amount: formData.initialChips,
-          description: `DZ扑克初始筹码 - 玩家: ${player.name}`,
-          type: 'system',
-          immediate: true
-        }
-
         // 使用特殊的系统 UUID 或 NULL
         const systemUuid = '00000000-0000-0000-0000-000000000000'; // 特殊的系统 UUID
         

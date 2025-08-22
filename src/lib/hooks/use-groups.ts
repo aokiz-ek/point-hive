@@ -105,7 +105,7 @@ export function useGroupMutations() {
   });
 
   const joinGroupMutation = useMutation({
-    mutationFn: (data: JoinGroupData) => joinGroup(data),
+    mutationFn: (data: JoinGroupData) => joinGroup(data.inviteCode),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.all() });
     },
