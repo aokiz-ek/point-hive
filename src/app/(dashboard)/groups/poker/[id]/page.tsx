@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Modal, FormItem, Select, InputNumber, TextArea } from '@/components/ui/modal';
 // import { useAuth, useTransactions } from '@/lib/hooks';
 import { useTransactions } from '@/lib/hooks';
 import { localPokerService, type PokerPlayer } from '@/lib/services/local-poker-service';
-import { generateId } from '@/lib/utils/local-storage';
+import { generateId, LocalStorage } from '@/lib/utils/local-storage';
 import type { Transaction } from '@/lib/types';
 
 // PokerPlayer 类型已从 services 导入
@@ -49,6 +50,10 @@ export default function PokerGroupPage() {
   const [activeTab, setActiveTab] = useState<'ranking' | 'battle' | 'records'>('ranking');
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [playerStats, setPlayerStats] = useState<any[]>([]);
+  
+  // 新增玩家相关状态
+  const [newPlayerName, setNewPlayerName] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { transactions } = useTransactions({ groupId });
 
@@ -79,7 +84,7 @@ export default function PokerGroupPage() {
   }, [groupId, router, user]);
 
   const calculatePlayerChips = async (playerNames: any[]) => {
-    if (!user) return;
+    if (!user) return null;
     
     const result = await localPokerService.calculatePlayerChips(groupId, playerNames, user.id);
     
@@ -113,6 +118,8 @@ export default function PokerGroupPage() {
     } else {
       console.error('计算玩家筹码失败:', result.error);
     }
+    
+    return result;
   };
 
   // 测试工具函数
@@ -321,6 +328,256 @@ export default function PokerGroupPage() {
     setTransferReason('');
   };
 
+  // 新增玩家
+  const addPlayer = async () => {
+    if (!newPlayerName.trim() || !group) return;
+    
+    const trimmedName = newPlayerName.trim();
+    
+    // 检查是否重名
+    const exists = players.some(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+    if (exists) {
+      setErrors({ player: '玩家姓名不能重复' });
+      return;
+    }
+    
+    // 检查最大玩家数限制
+    const maxPlayers = group.pokerSettings?.maxPlayers || 10;
+    if (players.length >= maxPlayers) {
+      setErrors({ player: `玩家数量不能超过${maxPlayers}人` });
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // 生成新玩家ID
+      const newPlayerId = generateId();
+      const newPlayerData = {
+        id: newPlayerId,
+        name: trimmedName,
+        isCreator: false
+      };
+      
+      // 添加到playerNames数组
+      const newPlayerNames = [...(group.pokerSettings?.playerNames || []), newPlayerData];
+      
+      // 更新群组设置
+      const updatedGroup = {
+        ...group,
+        pokerSettings: {
+          ...group.pokerSettings,
+          playerNames: newPlayerNames
+        }
+      };
+      
+      // 直接更新localStorage中的群组数据
+      const groups = JSON.parse(localStorage.getItem('poker_groups') || '[]');
+      const groupIndex = groups.findIndex((g: any) => g.id === groupId);
+      if (groupIndex !== -1) {
+        groups[groupIndex] = updatedGroup;
+        localStorage.setItem('poker_groups', JSON.stringify(groups));
+      }
+      
+      // 为新玩家创建系统交易，分配初始筹码
+      const initialChips = group.pokerSettings?.initialChips || 2000;
+      const systemUuid = '00000000-0000-0000-0000-000000000000';
+      const now = new Date().toISOString();
+      const transactionId = generateId();
+      
+      console.log(`✅ 为新玩家 ${trimmedName} (ID: ${newPlayerId}) 创建系统交易，积分: ${initialChips}`);
+      
+      const systemTransaction: Transaction = {
+        id: transactionId,
+        fromUserId: systemUuid,
+        toUserId: newPlayerId,
+        groupId: groupId,
+        amount: initialChips,
+        description: `积分游戏初始积分 - 玩家: ${trimmedName}`,
+        type: 'system',
+        status: 'completed',
+        completedAt: now,
+        createdAt: now,
+        updatedAt: now,
+        metadata: {
+          tags: ['poker', 'initial_chips', group.pokerSettings?.gameType || 'points'],
+          priority: 'normal',
+          playerName: trimmedName,
+          isCreator: false
+        }
+      };
+      
+      // 保存交易记录到localStorage (使用LocalStorage类的方法)
+      LocalStorage.addTransaction(systemTransaction);
+      
+      console.log(`✅ 系统交易已保存: ${transactionId}`);
+      
+      // 重新加载群组数据和重新计算筹码
+      setGroup(updatedGroup);
+      const result = await calculatePlayerChips(newPlayerNames);
+      
+      // 验证新增玩家的筹码是否正确
+      if (result?.success && result.data) {
+        const newPlayerInResult = (result.data as PokerPlayer[]).find(p => p.name === trimmedName);
+        if (newPlayerInResult) {
+          const isCorrect = newPlayerInResult.currentChips === initialChips && newPlayerInResult.totalBought === initialChips;
+          if (isCorrect) {
+            console.log(`✅ 新增玩家 ${trimmedName} 筹码验证成功！当前筹码: ${newPlayerInResult.currentChips}, 初始筹码: ${newPlayerInResult.totalBought}`);
+          } else {
+            console.error(`❌ 筹码分配错误！玩家: ${trimmedName}, 期望: ${initialChips}, 实际当前筹码: ${newPlayerInResult.currentChips}, 实际初始筹码: ${newPlayerInResult.totalBought}`);
+          }
+        } else {
+          console.error(`❌ 找不到新增玩家 ${trimmedName} 的筹码数据`);
+        }
+      }
+      
+      // 重置表单
+      setNewPlayerName('');
+      setErrors({});
+      
+    } catch (error) {
+      console.error('新增玩家失败:', error);
+      setErrors({ player: '新增玩家失败: ' + (error as Error).message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 快速添加预设玩家
+  const addPresetPlayers = async () => {
+    if (!group) return;
+    
+    const presetNames = ['Wade', 'Tomas', 'Sean', 'Iolo', 'Flynn', 'Jeff', 'David', 'Ray', 'GOGO', 'Yang', 'Steve'];
+    const currentCount = players.length;
+    const maxPlayers = group.pokerSettings?.maxPlayers || 10;
+    const maxToAdd = Math.min(presetNames.length, maxPlayers - currentCount);
+    
+    if (maxToAdd <= 0) {
+      setErrors({ player: `已达到最大玩家数${maxPlayers}人` });
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      const newPlayers = presetNames.slice(0, maxToAdd).map(name => ({
+        id: generateId(),
+        name,
+        isCreator: false
+      }));
+      
+      // 过滤掉重复的名字
+      const currentNames = players.map(p => p.name.toLowerCase());
+      const uniqueNewPlayers = newPlayers.filter(p => !currentNames.includes(p.name.toLowerCase()));
+      
+      if (uniqueNewPlayers.length === 0) {
+        setErrors({ player: '没有可以添加的新玩家（避免重名）' });
+        return;
+      }
+      
+      // 添加到playerNames数组
+      const newPlayerNames = [...(group.pokerSettings?.playerNames || []), ...uniqueNewPlayers];
+      
+      // 更新群组设置
+      const updatedGroup = {
+        ...group,
+        pokerSettings: {
+          ...group.pokerSettings,
+          playerNames: newPlayerNames
+        }
+      };
+      
+      // 直接更新localStorage中的群组数据
+      const groups = JSON.parse(localStorage.getItem('poker_groups') || '[]');
+      const groupIndex = groups.findIndex((g: any) => g.id === groupId);
+      if (groupIndex !== -1) {
+        groups[groupIndex] = updatedGroup;
+        localStorage.setItem('poker_groups', JSON.stringify(groups));
+      }
+      
+      // 为所有新玩家创建系统交易，分配初始筹码
+      const initialChips = group.pokerSettings?.initialChips || 2000;
+      const systemUuid = '00000000-0000-0000-0000-000000000000';
+      const now = new Date().toISOString();
+      const newTransactions: Transaction[] = [];
+      
+      for (const newPlayer of uniqueNewPlayers) {
+        const transactionId = generateId();
+        
+        const systemTransaction: Transaction = {
+          id: transactionId,
+          fromUserId: systemUuid,
+          toUserId: newPlayer.id,
+          groupId: groupId,
+          amount: initialChips,
+          description: `积分游戏初始积分 - 玩家: ${newPlayer.name}`,
+          type: 'system',
+          status: 'completed',
+          completedAt: now,
+          createdAt: now,
+          updatedAt: now,
+          metadata: {
+            tags: ['poker', 'initial_chips', group.pokerSettings?.gameType || 'points'],
+            priority: 'normal',
+            playerName: newPlayer.name,
+            isCreator: false
+          }
+        };
+        
+        newTransactions.push(systemTransaction);
+      }
+      
+      // 保存所有交易记录到localStorage (使用LocalStorage类的方法)
+      newTransactions.forEach(transaction => {
+        LocalStorage.addTransaction(transaction);
+      });
+      
+      // 重新加载群组数据和重新计算筹码
+      setGroup(updatedGroup);
+      const result = await calculatePlayerChips(newPlayerNames);
+      
+      // 验证批量新增玩家的筹码是否正确
+      if (result?.success && result.data) {
+        const resultPlayers = result.data as PokerPlayer[];
+        let allCorrect = true;
+        
+        for (const newPlayer of uniqueNewPlayers) {
+          const playerInResult = resultPlayers.find(p => p.name === newPlayer.name);
+          if (playerInResult) {
+            const isCorrect = playerInResult.currentChips === initialChips && playerInResult.totalBought === initialChips;
+            console.log(`批量新增玩家 ${newPlayer.name} 筹码验证:`, {
+              expectedInitialChips: initialChips,
+              actualCurrentChips: playerInResult.currentChips,
+              actualTotalBought: playerInResult.totalBought,
+              isCorrect
+            });
+            
+            if (!isCorrect) {
+              console.error(`玩家 ${newPlayer.name} 筹码分配错误！期望: ${initialChips}, 实际: 当前${playerInResult.currentChips}, 初始${playerInResult.totalBought}`);
+              allCorrect = false;
+            }
+          } else {
+            console.error(`找不到新增玩家 ${newPlayer.name} 的筹码数据`);
+            allCorrect = false;
+          }
+        }
+        
+        if (!allCorrect) {
+          setErrors({ player: `批量筹码分配验证失败，请重试` });
+          return;
+        }
+      }
+      
+      setErrors({});
+      
+    } catch (error) {
+      console.error('批量新增玩家失败:', error);
+      setErrors({ player: '批量新增玩家失败: ' + (error as Error).message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 买入更多筹码 (从其他玩家买入)
   const handleBuyIn = async (toPlayerId: string, fromPlayerId: string, amount: number, reason: string = '') => {
     if (!user || amount <= 0) return;
@@ -450,12 +707,12 @@ export default function PokerGroupPage() {
         totalWonFromOthers,
         totalLostToOthers,
         netTransferResult: totalWonFromOthers - totalLostToOthers,
-        netResult: player.netResult, // 添加最终净利润
+        netResult: player.netResult, // 添加最终净损益
         opponents: opponents.sort((a, b) => b.netAmount - a.netAmount)
       };
     }).filter(Boolean);
     
-    // 按最终净利润排序，而不是按转移净收益排序
+    // 按最终净损益排序，而不是按转移净收益排序
     return playerStats.filter((player): player is NonNullable<typeof player> => player !== null).sort((a, b) => b.netResult - a.netResult);
   };
 
@@ -466,7 +723,7 @@ export default function PokerGroupPage() {
     
     const settlement = players.map(player => ({
       ...player,
-      netResult: player.netResult, // 使用已经正确计算的净利润（只包含win类型交易）
+      netResult: player.netResult, // 使用已经正确计算的净损益（只包含win类型交易）
       finalAmount: player.currentChips
     }));
     
@@ -607,9 +864,107 @@ export default function PokerGroupPage() {
           </div>
         </Card>
 
+        {/* 新增玩家 */}
+        {gameStatus !== 'finished' && (
+          <Card className="ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-border-green-500/30 ak-shadow-2xl ak-shadow-green-500/10">
+            <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-green-400 ak-to-transparent"></div>
+            <div className="ak-p-4 sm:ak-p-6">
+              <div className="ak-flex ak-flex-col sm:ak-flex-row ak-justify-between ak-items-start ak-mb-4">
+                <h2 className="ak-text-lg sm:ak-text-xl ak-font-bold ak-bg-gradient-to-r ak-from-green-300 ak-to-green-400 ak-bg-clip-text ak-text-transparent ak-flex ak-items-center ak-space-x-2">
+                  <span>👥</span>
+                  <span>新增玩家</span>
+                  <div className="ak-text-sm ak-text-green-300 ak-bg-green-500/20 ak-border ak-border-green-400/30 ak-px-2 ak-py-1 ak-rounded-lg ak-font-medium ak-ml-2">
+                    {players.length} / {group?.pokerSettings?.maxPlayers || 10} 人
+                  </div>
+                </h2>
+                
+                <div className="ak-text-xs sm:ak-text-sm ak-text-green-300 ak-bg-green-500/10 ak-border ak-border-green-400/20 ak-px-3 ak-py-2 ak-rounded-lg ak-mt-2 sm:ak-mt-0">
+                  <div className="ak-flex ak-items-center ak-space-x-2">
+                    <span>💰</span>
+                    <div>
+                      <div>当前总积分池: {totalChips.toLocaleString()}</div>
+                      {(() => {
+                        const initialChips = group?.pokerSettings?.initialChips || 2000;
+                        const maxPlayers = group?.pokerSettings?.maxPlayers || 10;
+                        const remainingSlots = maxPlayers - players.length;
+                        const hasInput = newPlayerName.trim();
+                        const canAddMore = players.length < maxPlayers;
+                        
+                        if (hasInput) {
+                          return (
+                            <div className="ak-text-green-400 ak-font-medium">
+                              添加后: {(totalChips + initialChips).toLocaleString()}
+                              <span className="ak-ml-1 ak-text-green-300">(+{initialChips.toLocaleString()})</span>
+                            </div>
+                          );
+                        } else if (canAddMore) {
+                          return (
+                            <div className="ak-text-green-400 ak-font-medium">
+                              快速填充可增加: {(remainingSlots * initialChips).toLocaleString()}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="ak-flex ak-flex-col sm:ak-flex-row ak-gap-2 sm:ak-space-x-3 sm:ak-space-y-0">
+                <div className="ak-flex-1">
+                  <Input
+                    value={newPlayerName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPlayerName(e.target.value)}
+                    placeholder="输入玩家姓名"
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && (e.preventDefault(), addPlayer())}
+                    maxLength={20}
+                    className="ak-bg-gray-700 ak-border-green-500/30 ak-text-green-200 ak-placeholder-green-400/60 ak-focus:border-green-400 ak-focus:ring-green-400"
+                  />
+                  {errors.player && (
+                    <p className="ak-text-sm ak-text-red-500 ak-mt-1">{errors.player}</p>
+                  )}
+                </div>
+                
+                <div className="ak-flex ak-gap-2 sm:ak-gap-3">
+                  <Button 
+                    type="button" 
+                    onClick={addPlayer} 
+                    size="sm" 
+                    disabled={loading || players.length >= (group?.pokerSettings?.maxPlayers || 10)}
+                    className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px] ak-bg-green-600 ak-hover:ak-bg-green-700 ak-text-white ak-border-green-500/30"
+                  >
+                    {loading ? '添加中...' : (
+                      <>
+                        <span className="ak-hidden sm:ak-inline">添加玩家</span>
+                        <span className="sm:ak-hidden">添加</span>
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={addPresetPlayers} 
+                    size="sm"
+                    disabled={loading || players.length >= (group?.pokerSettings?.maxPlayers || 10)}
+                    className="ak-flex-1 sm:ak-flex-none ak-min-h-[40px] ak-bg-gray-700 ak-border-green-500/30 ak-text-green-300 ak-hover:ak-bg-green-500/10 ak-hover:ak-border-green-400 ak-hover:ak-text-green-200"
+                  >
+                    {loading ? '填充中...' : (
+                      <>
+                        <span className="ak-hidden sm:ak-inline">快速填充</span>
+                        <span className="sm:ak-hidden">填充</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* 玩家筹码显示 */}
         <div className="ak-grid ak-grid-cols-1 sm:ak-grid-cols-2 lg:ak-grid-cols-3 ak-gap-3 sm:ak-gap-4">
-          {players.map((player, index) => (
+          {players.map((player) => (
             <Card key={player.id} className="ak-relative ak-overflow-hidden ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-transition-shadow ak-hover:shadow-lg ak-hover:shadow-amber-500/20 ak-p-3 sm:ak-p-4 ak-border-gray-600/40">
             
             <div className="ak-flex ak-items-center ak-justify-between ak-mb-3">
@@ -712,14 +1067,14 @@ export default function PokerGroupPage() {
           <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 ak-gap-4 ak-text-xs ak-text-amber-200/80">
             <div className="ak-flex ak-items-center ak-space-x-3">
               <span className="ak-bg-green-500/20 ak-text-green-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-green-500/30">💰 获取</span>
-              <span>= 赢得积分（计入净利润）</span>
+              <span>= 赢得积分（计入净损益）</span>
             </div>
             <div className="ak-flex ak-items-center ak-space-x-3">
               <span className="ak-bg-amber-500/20 ak-text-amber-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-amber-500/30">📤 转出</span>
-              <span>= 借出积分（不影响净利润）</span>
+              <span>= 借出积分（不影响净损益）</span>
             </div>
             <div className="ak-col-span-1 md:ak-col-span-2 ak-text-amber-200/80 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-px-4 ak-py-3 ak-rounded-lg ak-text-center ak-border ak-border-amber-500/20 ak-shadow-lg">
-              <strong className="ak-text-amber-300">💡 示例：</strong> Wade赢得Tomas 2000 → Wade净利润+2000；Wade借出给Tomas 2000 → Wade净利润仍为+2000（借出不算输掉）
+              <strong className="ak-text-amber-300">💡 示例：</strong> Wade赢得Tomas 2000 → Wade净损益+2000；Wade借出给Tomas 2000 → Wade净损益仍为+2000（借出不算输掉）
             </div>
           </div>
         </div>
@@ -728,7 +1083,7 @@ export default function PokerGroupPage() {
       {/* 对战统计排名 */}
       <Card className="ak-p-6 ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border-gray-600/40">
         <h3 className="ak-text-lg ak-font-semibold ak-mb-4 ak-flex ak-items-center ak-gap-2 ak-text-gray-100">
-          ⚔️ 净利润排名
+          ⚔️ 净损益排名
         </h3>
         <div className="ak-space-y-3">
           {playerStats.slice(0, 5).map((playerStat: any, index: number) => (
@@ -763,7 +1118,7 @@ export default function PokerGroupPage() {
                   }`}>
                     {playerStat.netResult > 0 ? '+' : ''}{playerStat.netResult.toLocaleString()}
                   </div>
-                  <div className="ak-text-xs ak-text-gray-400">净利润</div>
+                  <div className="ak-text-xs ak-text-gray-400">净损益</div>
                 </div>
               </div>
             ))}
@@ -820,7 +1175,7 @@ export default function PokerGroupPage() {
               .filter(p => p.currentChips > 0)
               .map(p => ({
                 value: p.id,
-                label: `${p.name} (筹码: ${p.currentChips.toLocaleString()})`
+                label: `${p.name} (积分: ${p.currentChips.toLocaleString()})`
               }))}
           />
         </FormItem>
@@ -874,7 +1229,7 @@ export default function PokerGroupPage() {
           )}
           {transferFrom && (
             <div className="ak-text-xs ak-text-gray-500 ak-mt-1">
-              可借出: {players.find(p => p.id === transferFrom)?.currentChips.toLocaleString()} 筹码
+              可借出: {players.find(p => p.id === transferFrom)?.currentChips.toLocaleString()} 积分
             </div>
           )}
         </FormItem>
@@ -941,7 +1296,7 @@ export default function PokerGroupPage() {
               .filter(p => p.currentChips > 0)
               .map(p => ({
                 value: p.id,
-                label: `${p.name} (筹码: ${p.currentChips.toLocaleString()})`
+                label: `${p.name} (积分: ${p.currentChips.toLocaleString()})`
               }))}
           />
         </FormItem>
@@ -985,7 +1340,7 @@ export default function PokerGroupPage() {
           )}
           {buyInFrom && (
             <div className="ak-text-xs ak-text-gray-500 ak-mt-1">
-              最大可赢得: {players.find(p => p.id === buyInFrom)?.currentChips.toLocaleString()} 筹码
+              最大可赢得: {players.find(p => p.id === buyInFrom)?.currentChips.toLocaleString()} 积分
             </div>
           )}
         </FormItem>
@@ -1294,7 +1649,7 @@ export default function PokerGroupPage() {
                                     +{transaction.amount.toLocaleString()}
                                   </div>
                                   <div className="ak-text-xs ak-text-gray-500">
-                                    筹码
+                                    积分
                                   </div>
                                 </div>
                               </div>

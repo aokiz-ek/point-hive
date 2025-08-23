@@ -394,7 +394,7 @@ class PokerService {
             currentChips += transaction.amount
             totalWon += transaction.amount
             
-            // 只统计"win"类型的收入到净利润
+            // 只统计"win"类型的收入到净损益
             if (transferType === 'win') {
               winIncome += transaction.amount
             }
@@ -403,7 +403,7 @@ class PokerService {
             currentChips -= transaction.amount
             totalLost += transaction.amount
             
-            // 只统计"win"类型的支出到净利润
+            // 只统计"win"类型的支出到净损益
             if (transferType === 'win') {
               winExpense += transaction.amount
             }
@@ -419,7 +419,7 @@ class PokerService {
           totalBought,
           totalWon,
           totalLost,
-          netResult: winIncome - winExpense // 净利润 = 赢得的积分 - 输掉的积分（只计算win类型）
+          netResult: winIncome - winExpense // 净损益 = 赢得的积分 - 输掉的积分（只计算win类型）
         }
       })
 

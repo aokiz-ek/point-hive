@@ -34,7 +34,7 @@ export default function CreatePokerGroupPage() {
     initialChips: 2000,
     smallBlind: 10,
     bigBlind: 20,
-    maxPlayers: 10,
+    maxPlayers: 16,
     gameType: 'points' as 'points' | 'tournament'
   });
 
