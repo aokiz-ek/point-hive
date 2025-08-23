@@ -48,7 +48,7 @@ export interface TransactionMetadata {
   batchId?: string; // 批量操作ID
   tags?: string[];
   priority?: 'low' | 'normal' | 'high' | 'urgent';
-  transferType?: 'win' | 'loan'; // 用于Poker游戏：区分赢得积分和借出积分
+  transferType?: 'win' | 'buy_in' | 'cash_out' | 'loan'; // 用于Poker游戏：赢得积分、银行买入、兑现离场、临时借贷
   isPartialReturn?: boolean; // 用于退还交易：是否为部分退还
   originalAmount?: number; // 用于退还交易：原始交易金额
   type?: string; // 用于结算交易：结算类型

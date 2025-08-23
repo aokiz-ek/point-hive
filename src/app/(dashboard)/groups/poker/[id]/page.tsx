@@ -37,10 +37,18 @@ export default function PokerGroupPage() {
   const [transferAmount, setTransferAmount] = useState<number>(2000);
   const [transferReason, setTransferReason] = useState<string>('');
   
-  // 积分买入相关状态
+  // 赢得筹码相关状态
+  const [showWinModal, setShowWinModal] = useState(false);
+  const [winnerId, setWinnerId] = useState<string>('');
+  const [loserId, setLoserId] = useState<string>('');
+  const [winAmount, setWinAmount] = useState<number>(2000);
+  const [winReason, setWinReason] = useState<string>('');
+  
+  // 买入筹码相关状态
   const [showBuyInModal, setShowBuyInModal] = useState(false);
-  const [buyInTo, setBuyInTo] = useState<string>('');
-  const [buyInFrom, setBuyInFrom] = useState<string>('');
+  const [buyInPlayer, setBuyInPlayer] = useState<string>('');
+  const [buyInSource, setBuyInSource] = useState<'bank' | 'player'>('bank'); // 买入来源
+  const [buyInFromPlayer, setBuyInFromPlayer] = useState<string>(''); // 从哪个玩家买入
   const [buyInAmount, setBuyInAmount] = useState<number>(2000);
   const [buyInReason, setBuyInReason] = useState<string>('');
   
@@ -143,7 +151,7 @@ export default function PokerGroupPage() {
         createTestTransaction(tomasId, wadeId, 2000, '测试：Wade赢得积分', 'win');
         setTimeout(() => {
           // Wade借出1000积分给Tomas
-          createTestTransaction(wadeId, tomasId, 1000, '测试：Wade借出积分', 'loan');
+          createTestTransaction(wadeId, tomasId, 1000, '测试：Wade借出积分', 'buy_in');
         }, 500);
         break;
         
@@ -154,9 +162,9 @@ export default function PokerGroupPage() {
           if (!player3) return; // TypeScript safety check
           const player3Id = player3.isCreator ? user.id : player3.id;
           
-          createTestTransaction(wadeId, tomasId, 500, '测试：Wade→Tomas', 'loan');
+          createTestTransaction(wadeId, tomasId, 500, '测试：Wade→Tomas', 'buy_in');
           setTimeout(() => {
-            createTestTransaction(tomasId, player3Id, 300, '测试：Tomas→第三人', 'loan');
+            createTestTransaction(tomasId, player3Id, 300, '测试：Tomas→第三人', 'buy_in');
           }, 300);
           setTimeout(() => {
             createTestTransaction(player3Id, wadeId, 800, '测试：第三人→Wade', 'win');
@@ -174,7 +182,7 @@ export default function PokerGroupPage() {
               const fromId = randomFrom.isCreator ? user.id : randomFrom.id;
               const toId = randomTo.isCreator ? user.id : randomTo.id;
               const amount = Math.floor(Math.random() * 1000) + 100;
-              const type = Math.random() > 0.5 ? 'win' : 'loan';
+              const type = Math.random() > 0.5 ? 'win' : 'buy_in';
               createTestTransaction(fromId, toId, amount, `测试交易${i+1}`, type);
             }
           }, i * 200);
@@ -183,7 +191,7 @@ export default function PokerGroupPage() {
     }
   };
 
-  const createTestTransaction = async (fromUserId: string, toUserId: string, amount: number, description: string, transferType: 'win' | 'loan') => {
+  const createTestTransaction = async (fromUserId: string, toUserId: string, amount: number, description: string, transferType: 'win' | 'buy_in') => {
     const result = await localPokerService.createChipTransfer(
       groupId,
       fromUserId,
@@ -297,7 +305,7 @@ export default function PokerGroupPage() {
         toUserId,
         amount,
         reason || `积分借出: ${fromPlayerData.name} 借给 ${toPlayerData.name}`,
-        'loan'
+        'buy_in'
       );
       
       if (!result.success) {
@@ -578,38 +586,117 @@ export default function PokerGroupPage() {
     }
   };
 
-  // 买入更多筹码 (从其他玩家买入)
-  const handleBuyIn = async (toPlayerId: string, fromPlayerId: string, amount: number, reason: string = '') => {
+  // 赢得筹码 (从其他玩家)
+  const handleWinChips = async (winnerId: string, loserId: string, amount: number, reason: string = '') => {
     if (!user || amount <= 0) return;
     
     setLoading(true);
     
     try {
-      const toPlayer = players.find(p => p.id === toPlayerId);
-      const fromPlayer = players.find(p => p.id === fromPlayerId);
+      const winner = players.find(p => p.id === winnerId);
+      const loser = players.find(p => p.id === loserId);
       
-      if (!toPlayer || !fromPlayer) {
+      if (!winner || !loser) {
         throw new Error('玩家不存在');
       }
       
-      if (fromPlayer.currentChips < amount) {
-        throw new Error('卖出玩家筹码不足');
+      if (loser.currentChips < amount) {
+        throw new Error(`${loser.name} 筹码不足，当前只有 ${loser.currentChips} 积分`);
       }
       
-      const fromUserId = fromPlayer.isCreator ? user.id : (fromPlayer.userId || fromPlayerId);
-      const toUserId = toPlayer.isCreator ? user.id : (toPlayer.userId || toPlayerId);
+      const loserUserId = loser.isCreator ? user.id : (loser.userId || loserId);
+      const winnerUserId = winner.isCreator ? user.id : (winner.userId || winnerId);
       
       const result = await localPokerService.createChipTransfer(
         groupId,
-        fromUserId,
-        toUserId,
+        loserUserId,
+        winnerUserId,
         amount,
-        reason || `筹码赢得: ${toPlayer.name} 从 ${fromPlayer.name} 赢得筹码`,
+        reason || `游戏输赢: ${winner.name} 击败 ${loser.name} 赢得筹码`,
         'win'
       );
       
       if (!result.success) {
-        throw new Error(result.error || '积分转移失败');
+        throw new Error(result.error || '筹码转移失败');
+      }
+      
+      // 重新计算玩家积分
+      if (group?.pokerSettings?.playerNames) {
+        await calculatePlayerChips(group.pokerSettings.playerNames);
+      }
+      
+      // 关闭赢得模态框
+      setShowWinModal(false);
+      resetWinForm();
+      
+    } catch (error) {
+      console.error('积分转移失败:', error);
+      alert('积分转移失败: ' + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetWinForm = () => {
+    setWinnerId('');
+    setLoserId('');
+    setWinAmount(2000);
+    setWinReason('');
+  };
+
+  // 买入筹码（支持银行和玩家两种来源）
+  const handleBuyIn = async (playerId: string, source: 'bank' | 'player', amount: number, fromPlayerId: string = '', reason: string = '') => {
+    if (!user || amount <= 0) return;
+    
+    setLoading(true);
+    
+    try {
+      const player = players.find(p => p.id === playerId);
+      
+      if (!player) {
+        throw new Error('买入玩家不存在');
+      }
+      
+      const playerUserId = player.isCreator ? user.id : (player.userId || playerId);
+      
+      if (source === 'bank') {
+        // 从银行买入
+        const result = await localPokerService.createBankBuyIn(
+          groupId,
+          playerUserId,
+          amount,
+          reason || `${player.name} 从银行买入筹码`
+        );
+        
+        if (!result.success) {
+          throw new Error(result.error || '银行买入失败');
+        }
+      } else {
+        // 从其他玩家买入
+        const fromPlayer = players.find(p => p.id === fromPlayerId);
+        
+        if (!fromPlayer) {
+          throw new Error('卖出玩家不存在');
+        }
+        
+        if (fromPlayer.currentChips < amount) {
+          throw new Error(`${fromPlayer.name} 筹码不足，当前只有 ${fromPlayer.currentChips} 积分`);
+        }
+        
+        const fromPlayerUserId = fromPlayer.isCreator ? user.id : (fromPlayer.userId || fromPlayerId);
+        
+        const result = await localPokerService.createChipTransfer(
+          groupId,
+          fromPlayerUserId,
+          playerUserId,
+          amount,
+          reason || `筹码买入: ${player.name} 从 ${fromPlayer.name} 买入筹码`,
+          'buy_in' // 买入类型，不影响净损益
+        );
+        
+        if (!result.success) {
+          throw new Error(result.error || '玩家买入失败');
+        }
       }
       
       // 重新计算玩家积分
@@ -622,16 +709,17 @@ export default function PokerGroupPage() {
       resetBuyInForm();
       
     } catch (error) {
-      console.error('积分转移失败:', error);
-      alert('积分转移失败: ' + (error as Error).message);
+      console.error('买入筹码失败:', error);
+      alert('买入筹码失败: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
   const resetBuyInForm = () => {
-    setBuyInTo('');
-    setBuyInFrom('');
+    setBuyInPlayer('');
+    setBuyInSource('bank');
+    setBuyInFromPlayer('');
     setBuyInAmount(2000);
     setBuyInReason('');
   };
@@ -1031,13 +1119,25 @@ export default function PokerGroupPage() {
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    setBuyInTo(player.id);
-                    setShowBuyInModal(true);
+                    setWinnerId(player.id);
+                    setShowWinModal(true);
                   }}
                   className="ak-flex-1 ak-text-xs ak-bg-green-600/20 ak-text-green-300 ak-border-green-500/40 hover:ak-bg-green-600/30 ak-min-h-[36px] ak-transition-colors"
                 >
                   <span className="ak-hidden sm:ak-inline">💰 赢得</span>
                   <span className="sm:ak-hidden">💰</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setBuyInPlayer(player.id);
+                    setShowBuyInModal(true);
+                  }}
+                  className="ak-flex-1 ak-text-xs ak-bg-blue-600/20 ak-text-blue-300 ak-border-blue-500/40 hover:ak-bg-blue-600/30 ak-min-h-[36px] ak-transition-colors"
+                >
+                  <span className="ak-hidden sm:ak-inline">🏪 买入</span>
+                  <span className="sm:ak-hidden">🏪</span>
                 </Button>
                 <Button
                   size="sm"
@@ -1062,19 +1162,24 @@ export default function PokerGroupPage() {
         <div className="ak-absolute ak-top-0 ak-left-0 ak-right-0 ak-h-0.5 ak-bg-gradient-to-r ak-from-transparent ak-via-amber-400/50 ak-to-transparent"></div>
         <div className="ak-p-4 sm:ak-p-6">
           <h3 className="ak-text-sm ak-font-semibold ak-text-amber-300 ak-mb-4 ak-flex ak-items-center ak-gap-2">
-            📋 积分操作规则
+            📋 操作规则说明
           </h3>
-          <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-2 ak-gap-4 ak-text-xs ak-text-amber-200/80">
+          <div className="ak-grid ak-grid-cols-1 md:ak-grid-cols-3 ak-gap-4 ak-text-xs ak-text-amber-200/80">
             <div className="ak-flex ak-items-center ak-space-x-3">
-              <span className="ak-bg-green-500/20 ak-text-green-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-green-500/30">💰 获取</span>
-              <span>= 赢得积分（计入净损益）</span>
+              <span className="ak-bg-green-500/20 ak-text-green-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-green-500/30">💰 赢得</span>
+              <span>= 游戏输赢（计入净损益）</span>
             </div>
             <div className="ak-flex ak-items-center ak-space-x-3">
-              <span className="ak-bg-amber-500/20 ak-text-amber-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-amber-500/30">📤 转出</span>
-              <span>= 借出积分（不影响净损益）</span>
+              <span className="ak-bg-blue-500/20 ak-text-blue-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-blue-500/30">🏪 买入</span>
+              <span>= 银行/玩家买入（不影响净损益）</span>
             </div>
-            <div className="ak-col-span-1 md:ak-col-span-2 ak-text-amber-200/80 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-px-4 ak-py-3 ak-rounded-lg ak-text-center ak-border ak-border-amber-500/20 ak-shadow-lg">
-              <strong className="ak-text-amber-300">💡 示例：</strong> Wade赢得Tomas 2000 → Wade净损益+2000；Wade借出给Tomas 2000 → Wade净损益仍为+2000（借出不算输掉）
+            <div className="ak-flex ak-items-center ak-space-x-3">
+              <span className="ak-bg-orange-500/20 ak-text-orange-300 ak-px-3 ak-py-1 ak-rounded ak-font-medium ak-border ak-border-orange-500/30">📤 借出</span>
+              <span>= 临时借贷（不影响净损益）</span>
+            </div>
+            <div className="ak-col-span-1 md:ak-col-span-3 ak-text-amber-200/80 ak-bg-gradient-to-br ak-from-gray-700 ak-to-gray-600 ak-px-4 ak-py-3 ak-rounded-lg ak-text-center ak-border ak-border-amber-500/20 ak-shadow-lg">
+              <strong className="ak-text-amber-300">💡 示例：</strong> 
+              Wade赢得Tomas 2000（净损益+2000）| Tomas从银行买入2000（总筹码增加）| Sean从Wade买入1000（总筹码不变）| Wade借出500给Tomas（临时转移）
             </div>
           </div>
         </div>
@@ -1244,14 +1349,125 @@ export default function PokerGroupPage() {
         </FormItem>
       </Modal>
 
-      {/* 买入模态框 - Ant Design Style */}
+      {/* 赢得筹码模态框 - Ant Design Style */}
+      <Modal
+        open={showWinModal}
+        onCancel={() => {
+          setShowWinModal(false);
+          resetWinForm();
+        }}
+        title="💰 赢得筹码"
+        width={480}
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowWinModal(false);
+                resetWinForm();
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={() => handleWinChips(winnerId, loserId, winAmount, winReason)}
+              disabled={!winnerId || !loserId || winAmount <= 0 || loading}
+              className="ak-bg-green-600 ak-hover:bg-green-700 ak-text-white"
+            >
+              {loading ? '记录中...' : '确认赢得'}
+            </Button>
+          </>
+        }
+      >
+
+   
+        <FormItem label="赢家玩家" required>
+          <Select
+            value={winnerId}
+            onChange={setWinnerId}
+            placeholder="请选择赢家玩家"
+            options={players
+              .filter(p => p.id !== loserId)
+              .map(p => ({ value: p.id, label: p.name }))}
+          />
+        </FormItem>
+
+        <FormItem label="输家玩家" required>
+          <Select
+            value={loserId}
+            onChange={setLoserId}
+            placeholder="请选择输家玩家"
+            options={players
+              .filter(p => p.currentChips > 0 && p.id !== winnerId)
+              .map(p => ({
+                value: p.id,
+                label: `${p.name} (积分: ${p.currentChips.toLocaleString()})`
+              }))}
+          />
+        </FormItem>
+     
+        
+        <FormItem label="赢得金额" required>
+          <InputNumber
+            value={winAmount}
+            onChange={setWinAmount}
+            min={1}
+            max={loserId ? players.find(p => p.id === loserId)?.currentChips || 0 : 0}
+            placeholder="输入赢得的筹码数量"
+          />
+          {loserId && (
+            <div className="ak-flex ak-flex-wrap ak-gap-2 ak-mt-3">
+              {[500, 1000, 2000, 3000, 5000]
+                .filter(amount => amount <= (players.find(p => p.id === loserId)?.currentChips || 0))
+                .map(amount => (
+                <Button
+                  key={amount}
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setWinAmount(amount)}
+                  className="ak-text-xs"
+                >
+                  {amount.toLocaleString()}
+                </Button>
+              ))}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const player = players.find(p => p.id === loserId);
+                  if (player) setWinAmount(player.currentChips);
+                }}
+                className="ak-text-xs"
+              >
+                全部 ({loserId ? players.find(p => p.id === loserId)?.currentChips.toLocaleString() : 0})
+              </Button>
+            </div>
+          )}
+          {loserId && (
+            <div className="ak-text-xs ak-text-gray-500 ak-mt-1">
+              最大可赢得: {players.find(p => p.id === loserId)?.currentChips.toLocaleString()} 积分
+            </div>
+          )}
+        </FormItem>
+        
+        <FormItem label="备注 (可选)">
+          <TextArea
+            value={winReason}
+            onChange={setWinReason}
+            placeholder="例如：All-in对决获胜、同花顺击败对子"
+            rows={2}
+          />
+        </FormItem>
+      </Modal>
+
+      {/* 买入筹码模态框 - Ant Design Style */}
       <Modal
         open={showBuyInModal}
         onCancel={() => {
           setShowBuyInModal(false);
           resetBuyInForm();
         }}
-        title="💰 赢得筹码"
+        title="🏪 买入筹码"
         width={480}
         footer={
           <>
@@ -1265,56 +1481,85 @@ export default function PokerGroupPage() {
               取消
             </Button>
             <Button
-              onClick={() => handleBuyIn(buyInTo, buyInFrom, buyInAmount, buyInReason)}
-              disabled={!buyInTo || !buyInFrom || buyInAmount <= 0 || loading}
-              className="ak-bg-green-600 ak-hover:bg-green-700 ak-text-white"
+              onClick={() => handleBuyIn(buyInPlayer, buyInSource, buyInAmount, buyInFromPlayer, buyInReason)}
+              disabled={!buyInPlayer || buyInAmount <= 0 || (buyInSource === 'player' && !buyInFromPlayer) || loading}
+              className="ak-bg-blue-600 ak-hover:bg-blue-700 ak-text-white"
             >
-              {loading ? '记录中...' : '确认赢得'}
+              {loading ? '买入中...' : '确认买入'}
             </Button>
           </>
         }
       >
-
-   
-        <FormItem label="赢家玩家" required>
+        <FormItem label="买入玩家" required>
           <Select
-            value={buyInTo}
-            onChange={setBuyInTo}
-            placeholder="请选择赢家玩家"
-            options={players
-              .filter(p => p.id !== buyInFrom)
-              .map(p => ({ value: p.id, label: p.name }))}
+            value={buyInPlayer}
+            onChange={setBuyInPlayer}
+            placeholder="请选择买入玩家"
+            options={players.map(p => ({ value: p.id, label: p.name }))}
           />
         </FormItem>
-
-        <FormItem label="输家玩家" required>
-          <Select
-            value={buyInFrom}
-            onChange={setBuyInFrom}
-            placeholder="请选择输家玩家"
-            options={players
-              .filter(p => p.currentChips > 0)
-              .map(p => ({
-                value: p.id,
-                label: `${p.name} (积分: ${p.currentChips.toLocaleString()})`
-              }))}
-          />
-        </FormItem>
-     
         
-        <FormItem label="赢得金额" required>
+        <FormItem label="买入来源" required>
+          <div className="ak-flex ak-gap-3">
+            <Button
+              variant={buyInSource === 'bank' ? 'default' : 'outline'}
+              onClick={() => setBuyInSource('bank')}
+              className={`ak-flex-1 ak-min-h-[40px] ${
+                buyInSource === 'bank' 
+                  ? 'ak-bg-blue-600 ak-text-white ak-border-blue-600' 
+                  : 'ak-bg-gray-100 ak-text-gray-700 ak-border-gray-300 ak-hover:ak-bg-gray-200'
+              }`}
+            >
+              🏪 从银行买入
+            </Button>
+            <Button
+              variant={buyInSource === 'player' ? 'default' : 'outline'}
+              onClick={() => setBuyInSource('player')}
+              className={`ak-flex-1 ak-min-h-[40px] ${
+                buyInSource === 'player' 
+                  ? 'ak-bg-blue-600 ak-text-white ak-border-blue-600' 
+                  : 'ak-bg-gray-100 ak-text-gray-700 ak-border-gray-300 ak-hover:ak-bg-gray-200'
+              }`}
+            >
+              👤 从玩家买入
+            </Button>
+          </div>
+          <div className="ak-text-xs ak-text-gray-600 ak-mt-2">
+            {buyInSource === 'bank' ? 
+              '💡 从银行买入会增加总筹码池，不影响净损益统计' : 
+              '💡 从玩家买入只是筹码转移，总筹码池不变，不影响净损益统计'
+            }
+          </div>
+        </FormItem>
+        
+        {buyInSource === 'player' && (
+          <FormItem label="卖出玩家" required>
+            <Select
+              value={buyInFromPlayer}
+              onChange={setBuyInFromPlayer}
+              placeholder="请选择卖出玩家"
+              options={players
+                .filter(p => p.currentChips > 0 && p.id !== buyInPlayer)
+                .map(p => ({
+                  value: p.id,
+                  label: `${p.name} (积分: ${p.currentChips.toLocaleString()})`
+                }))}
+            />
+          </FormItem>
+        )}
+        
+        <FormItem label="买入金额" required>
           <InputNumber
             value={buyInAmount}
             onChange={setBuyInAmount}
-            min={1}
-            max={buyInFrom ? players.find(p => p.id === buyInFrom)?.currentChips || 0 : 0}
-            placeholder="输入赢得的筹码数量"
+            min={100}
+            max={buyInSource === 'bank' ? 50000 : (buyInFromPlayer ? players.find(p => p.id === buyInFromPlayer)?.currentChips || 0 : 0)}
+            placeholder="输入买入的筹码数量"
           />
-          {buyInFrom && (
-            <div className="ak-flex ak-flex-wrap ak-gap-2 ak-mt-3">
-              {[1000, 2000, 3000, 5000]
-                .filter(amount => amount <= (players.find(p => p.id === buyInFrom)?.currentChips || 0))
-                .map(amount => (
+          <div className="ak-flex ak-flex-wrap ak-gap-2 ak-mt-3">
+            {buyInSource === 'bank' ? (
+              // 银行买入的快捷金额
+              [1000, 2000, 3000, 5000, 10000].map(amount => (
                 <Button
                   key={amount}
                   size="sm"
@@ -1324,23 +1569,42 @@ export default function PokerGroupPage() {
                 >
                   {amount.toLocaleString()}
                 </Button>
-              ))}
+              ))
+            ) : (
+              // 从玩家买入的快捷金额（受限于玩家现有筹码）
+              [500, 1000, 2000, 3000, 5000]
+                .filter(amount => amount <= (players.find(p => p.id === buyInFromPlayer)?.currentChips || 0))
+                .map(amount => (
+                  <Button
+                    key={amount}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setBuyInAmount(amount)}
+                    className="ak-text-xs"
+                  >
+                    {amount.toLocaleString()}
+                  </Button>
+                ))
+            )}
+            
+            {buyInSource === 'player' && buyInFromPlayer && (
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  const player = players.find(p => p.id === buyInFrom);
+                  const player = players.find(p => p.id === buyInFromPlayer);
                   if (player) setBuyInAmount(player.currentChips);
                 }}
                 className="ak-text-xs"
               >
-                全部 ({buyInFrom ? players.find(p => p.id === buyInFrom)?.currentChips.toLocaleString() : 0})
+                全部 ({buyInFromPlayer ? players.find(p => p.id === buyInFromPlayer)?.currentChips.toLocaleString() : 0})
               </Button>
-            </div>
-          )}
-          {buyInFrom && (
+            )}
+          </div>
+          
+          {buyInSource === 'player' && buyInFromPlayer && (
             <div className="ak-text-xs ak-text-gray-500 ak-mt-1">
-              最大可赢得: {players.find(p => p.id === buyInFrom)?.currentChips.toLocaleString()} 积分
+              可买入: {players.find(p => p.id === buyInFromPlayer)?.currentChips.toLocaleString()} 积分
             </div>
           )}
         </FormItem>
@@ -1349,7 +1613,7 @@ export default function PokerGroupPage() {
           <TextArea
             value={buyInReason}
             onChange={setBuyInReason}
-            placeholder="例如：All-in赢得对手筹码"
+            placeholder={buyInSource === 'bank' ? "例如：中途补充筹码继续游戏" : "例如：向朋友买入筹码"}
             rows={2}
           />
         </FormItem>
@@ -1602,7 +1866,7 @@ export default function PokerGroupPage() {
                             );
                             
                             const isWin = transaction.metadata?.transferType === 'win';
-                            const isLoan = transaction.metadata?.transferType === 'loan';
+                            const isLoan = transaction.metadata?.transferType === 'buy_in';
                             const isSystemBuyIn = transaction.fromUserId === 'system';
                             
                             let bgColor = 'ak-bg-gray-50 ak-border-gray-200';

@@ -223,7 +223,7 @@ class LocalPokerService {
     toUserId: string,
     amount: number,
     description: string,
-    transferType: 'win' | 'loan' = 'loan'
+    transferType: 'win' | 'buy_in' | 'cash_out' = 'win'
   ): Promise<PokerServiceResponse> {
     try {
       // 验证输入参数
@@ -350,7 +350,7 @@ class LocalPokerService {
             currentChips += transaction.amount
             totalWon += transaction.amount
             
-            // 只统计"win"类型的收入到净损益
+            // 只统计"win"类型的收入到净损益，buy_in和cash_out不影响净损益
             if (transferType === 'win') {
               winIncome += transaction.amount
             }
@@ -359,7 +359,7 @@ class LocalPokerService {
             currentChips -= transaction.amount
             totalLost += transaction.amount
             
-            // 只统计"win"类型的支出到净损益
+            // 只统计"win"类型的支出到净损益，buy_in和cash_out不影响净损益
             if (transferType === 'win') {
               winExpense += transaction.amount
             }
@@ -387,6 +387,50 @@ class LocalPokerService {
       return {
         success: false,
         error: error instanceof Error ? error.message : '计算玩家积分失败'
+      }
+    }
+  }
+
+  /**
+   * 银行买入积分 (localStorage版本)
+   */
+  async createBankBuyIn(
+    groupId: string,
+    playerId: string,
+    amount: number,
+    description?: string
+  ): Promise<PokerServiceResponse> {
+    try {
+      const transactionId = generateId()
+      const systemUuid = '00000000-0000-0000-0000-000000000000'
+      const now = new Date().toISOString()
+
+      const transaction: Transaction = {
+        id: transactionId,
+        fromUserId: systemUuid,
+        toUserId: playerId,
+        groupId,
+        amount,
+        description: description || `银行买入积分`,
+        type: 'system',
+        status: 'completed',
+        completedAt: now,
+        createdAt: now,
+        updatedAt: now,
+        metadata: {
+          tags: ['poker', 'bank_buy_in'],
+          priority: 'normal',
+          transferType: 'buy_in'
+        }
+      }
+
+      LocalStorage.addTransaction(transaction)
+
+      return { success: true }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '银行买入失败'
       }
     }
   }
