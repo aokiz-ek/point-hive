@@ -47,7 +47,7 @@ export default function PokerGroupPage() {
   // 买入筹码相关状态
   const [showBuyInModal, setShowBuyInModal] = useState(false);
   const [buyInPlayer, setBuyInPlayer] = useState<string>('');
-  const [buyInSource, setBuyInSource] = useState<'bank' | 'player'>('bank'); // 买入来源
+  const [buyInSource, setBuyInSource] = useState<'bank' | 'player'>('player'); // 买入来源，默认从玩家买入
   const [buyInFromPlayer, setBuyInFromPlayer] = useState<string>(''); // 从哪个玩家买入
   const [buyInAmount, setBuyInAmount] = useState<number>(2000);
   const [buyInReason, setBuyInReason] = useState<string>('');
@@ -718,7 +718,7 @@ export default function PokerGroupPage() {
 
   const resetBuyInForm = () => {
     setBuyInPlayer('');
-    setBuyInSource('bank');
+    setBuyInSource('player'); // 默认从玩家买入
     setBuyInFromPlayer('');
     setBuyInAmount(2000);
     setBuyInReason('');
@@ -1191,7 +1191,7 @@ export default function PokerGroupPage() {
           ⚔️ 净损益排名
         </h3>
         <div className="ak-space-y-3">
-          {playerStats.slice(0, 5).map((playerStat: any, index: number) => (
+          {playerStats?.map((playerStat: any, index: number) => (
               <div 
                 key={playerStat.id}
                 className={`ak-flex ak-justify-between ak-items-center ak-p-3 ak-rounded-lg ak-border ak-transition-all ak-duration-200 ${
