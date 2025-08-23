@@ -138,7 +138,7 @@ export default function CreatePokerGroupPage() {
                       hour < 12 ? '晨光' : 
                       hour < 18 ? '午后' : '夜幕';
     
-    // 游戏强度（基于盲注与初始筹码比例）
+    // 游戏强度（基于盲注与初始积分比例）
     const intensity = formData.bigBlind / formData.initialChips;
     const gameIntensity = intensity > 0.05 ? '激战' :
                          intensity > 0.025 ? '对决' : '温和';
@@ -205,7 +205,7 @@ export default function CreatePokerGroupPage() {
       `${formData.maxPlayers}王者争霸`,
       `${formData.maxPlayers}人积分大战`,
       
-      // 筹码特色
+      // 积分特色
       `${formData.initialChips}起家致富`,
       `${formData.initialChips}积分帝国`,
       `${formData.initialChips}传奇之路`
