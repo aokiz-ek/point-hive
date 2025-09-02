@@ -6,10 +6,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 // import { useAuth } from '@/lib/hooks';
-import { localPokerService } from '@/lib/services/local-poker-service';
+import { localStrategyService } from '@/lib/services/local-strategy-service';
 import { generateId } from '@/lib/utils/local-storage';
 
-interface PokerPlayer {
+interface StrategyPlayer {
   id: string;
   name: string;
   isCreator: boolean;
@@ -18,7 +18,7 @@ interface PokerPlayer {
   creditScore?: number;
 }
 
-export default function CreatePokerGroupPage() {
+export default function CreateStrategyGroupPage() {
   const router = useRouter();
   // Mock用户，避免登录依赖
   const user = { 
@@ -39,7 +39,7 @@ export default function CreatePokerGroupPage() {
   });
 
   // 玩家管理
-  const [players, setPlayers] = useState<PokerPlayer[]>([]);
+  const [players, setPlayers] = useState<StrategyPlayer[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [isGeneratingName, setIsGeneratingName] = useState(false);
   const [showNameSuggestion, setShowNameSuggestion] = useState(false);
@@ -61,7 +61,7 @@ export default function CreatePokerGroupPage() {
   const addPlayer = () => {
     if (newPlayerName.trim() && players.length < formData.maxPlayers) {
       const trimmedName = newPlayerName.trim();
-      const newPlayer: PokerPlayer = {
+      const newPlayer: StrategyPlayer = {
         id: generateId(),
         name: trimmedName,
         isCreator: false
@@ -109,7 +109,7 @@ export default function CreatePokerGroupPage() {
     const currentCount = players.length;
     const maxToAdd = Math.min(presetNames.length, formData.maxPlayers - currentCount);
     
-    const newPlayers: PokerPlayer[] = presetNames.slice(0, maxToAdd).map((name) => ({
+    const newPlayers: StrategyPlayer[] = presetNames.slice(0, maxToAdd).map((name) => ({
       id: generateId(),
       name,
       isCreator: false
@@ -257,7 +257,7 @@ export default function CreatePokerGroupPage() {
 
     try {
       // 使用 localStorage 创建Poker群组
-      const result = await localPokerService.createPokerGroup(user.id, formData, players);
+      const result = await localStrategyService.createStrategyGroup(user.id, formData, players);
       
       if (!result.success) {
         setErrors({ submit: result.error || '创建失败，请重试' });
@@ -268,7 +268,7 @@ export default function CreatePokerGroupPage() {
       router.push(`/groups/poker/${result.data.id}`);
       
     } catch (error) {
-      console.error('创建积分游戏失败:', error);
+      console.error('创建策略训练失败:', error);
       setErrors({ submit: '创建失败，请重试' });
     } finally {
       setLoading(false);
@@ -282,11 +282,11 @@ export default function CreatePokerGroupPage() {
         <div className="ak-text-center ak-py-4 sm:ak-py-6">
           <div className="ak-relative ak-mb-4">
             <h1 className="ak-text-3xl sm:ak-text-4xl ak-font-bold ak-bg-gradient-to-r ak-from-amber-300 ak-via-amber-400 ak-to-amber-500 ak-bg-clip-text ak-text-transparent ak-drop-shadow-2xl">
-              🎯 创建游戏房间
+              🎯 创建训练房间
             </h1>
             <div className="ak-absolute ak-inset-0 ak-bg-amber-400 ak-opacity-10 ak-blur-2xl ak-rounded-full ak-scale-150"></div>
           </div>
-          <p className="ak-text-base sm:ak-text-lg ak-text-amber-200/80 ak-font-medium">快速设置积分游戏，管理玩家积分</p>
+          <p className="ak-text-base sm:ak-text-lg ak-text-amber-200/80 ak-font-medium">快速设置策略训练，管理玩家积分</p>
         </div>
 
         <form onSubmit={handleSubmit} className="ak-space-y-6 sm:ak-space-y-8">

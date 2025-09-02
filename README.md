@@ -10,17 +10,17 @@
 
 ### 项目介绍
 
-**Point-Hive**（积分蜂巢）是一个现代化的基于积分的借还管理系统，专为多人协作场景设计。系统支持实时积分转移、智能信用评分、群组管理等功能，特别适用于扑克游戏积分管理、团队协作积分分配等场景。
+**Point-Hive**（积分蜂巢）是一个现代化的基于积分的借还管理系统，专为多人协作场景设计。系统支持实时积分转移、智能信用评分、群组管理等功能，特别适用于策略决策训练、团队协作积分分配等场景。
 
 ### 🌐 在线演示
 
 🚀 **访问地址**: [https://point-hive-9149.vercel.app/](https://point-hive-9149.vercel.app/)
 
-> 💡 **提示**: 系统支持本地模式运行，无需任何配置即可体验所有功能。您可以直接创建扑克游戏房间并邀请朋友参与！
+> 💡 **提示**: 系统支持本地模式运行，无需任何配置即可体验所有功能。您可以直接创建策略决策训练房间并邀请朋友参与！
 
 ### 🎯 核心特性
 
-- **🎮 扑克游戏积分管理** - 专业的扑克游戏积分分配、转移和结算系统
+- **🎮 策略决策积分管理** - 专业的策略决策积分分配、转移和结算系统
 - **⚡ 实时数据同步** - 基于现代化架构的实时数据更新
 - **🏆 智能信用评分** - 基于历史行为的多维度信用评估系统
 - **👥 群组协作管理** - 支持多人群组创建、成员管理和权限控制
@@ -108,7 +108,7 @@ point-hive/
 │   ├── app/                    # Next.js 13+ App Router
 │   │   ├── (dashboard)/        # 仪表板页面组
 │   │   │   ├── groups/         # 群组管理
-│   │   │   │   └── poker/      # 扑克游戏相关页面
+│   │   │   │   └── strategy/   # 策略决策相关页面
 │   │   │   └── config/         # 配置页面
 │   │   ├── api/                # API路由
 │   │   ├── layout.tsx          # 根布局组件
@@ -139,8 +139,8 @@ point-hive/
 
 ### 🎮 主要功能模块
 
-#### 1. 扑克游戏积分管理
-- **群组创建**: 支持快速创建扑克游戏房间，设置初始积分和游戏规则
+#### 1. 策略决策积分管理
+- **群组创建**: 支持快速创建策略决策训练房间，设置初始积分和训练规则
 - **积分分配**: 自动为每个玩家分配初始积分，记录完整的交易历史
 - **实时转移**: 玩家间可以实时进行积分转移，支持借出和赢取两种类型
 - **游戏结算**: 游戏结束后自动计算每个玩家的净收益和最终排名
@@ -228,17 +228,17 @@ chore: 构建过程或辅助工具的变动
 
 ### Project Introduction
 
-**Point-Hive** is a modern point-based lending and borrowing management system designed for multi-user collaborative scenarios. The system supports real-time point transfers, intelligent credit scoring, group management, and is particularly suitable for poker game point management and team collaboration scenarios.
+**Point-Hive** is a modern point-based lending and borrowing management system designed for multi-user collaborative scenarios. The system supports real-time point transfers, intelligent credit scoring, group management, and is particularly suitable for strategy decision training and team collaboration scenarios.
 
 ### 🌐 Live Demo
 
 🚀 **Visit**: [https://point-hive-9149.vercel.app/](https://point-hive-9149.vercel.app/)
 
-> 💡 **Tip**: The system supports local mode operation, allowing you to experience all features without any configuration. You can directly create poker game rooms and invite friends to join!
+> 💡 **Tip**: The system supports local mode operation, allowing you to experience all features without any configuration. You can directly create strategy decision training rooms and invite friends to join!
 
 ### 🎯 Core Features
 
-- **🎮 Poker Game Point Management** - Professional poker game point allocation, transfer, and settlement system
+- **🎮 Strategy Decision Point Management** - Professional strategy decision point allocation, transfer, and settlement system
 - **⚡ Real-time Data Synchronization** - Real-time data updates based on modern architecture
 - **🏆 Intelligent Credit Scoring** - Multi-dimensional credit assessment system based on historical behavior
 - **👥 Group Collaboration Management** - Support for multi-user group creation, member management, and permission control
@@ -326,7 +326,7 @@ point-hive/
 │   ├── app/                    # Next.js 13+ App Router
 │   │   ├── (dashboard)/        # Dashboard page group
 │   │   │   ├── groups/         # Group management
-│   │   │   │   └── poker/      # Poker game related pages
+│   │   │   │   └── strategy/   # Strategy decision related pages
 │   │   │   └── config/         # Configuration pages
 │   │   ├── api/                # API routes
 │   │   ├── layout.tsx          # Root layout component
@@ -357,8 +357,8 @@ point-hive/
 
 ### 🎮 Main Feature Modules
 
-#### 1. Poker Game Point Management
-- **Group Creation**: Support for quickly creating poker game rooms with initial points and game rules
+#### 1. Strategy Decision Point Management
+- **Group Creation**: Support for quickly creating strategy decision training rooms with initial points and training rules
 - **Point Allocation**: Automatically allocate initial points to each player with complete transaction history
 - **Real-time Transfer**: Real-time point transfers between players, supporting both loan and win types
 - **Game Settlement**: Automatic calculation of each player's net profit and final ranking after game completion

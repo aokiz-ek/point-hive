@@ -3,7 +3,7 @@ import { groupService } from './group-service'
 import { transactionService } from './transaction-service'
 import type { CreateGroupData, Transaction } from '@/lib/types'
 
-export interface PokerPlayer {
+export interface StrategyPlayer {
   id: string
   name: string
   userId?: string
@@ -15,7 +15,7 @@ export interface PokerPlayer {
   netResult: number
 }
 
-export interface PokerGameSettings {
+export interface StrategyGameSettings {
   gameType: 'points' | 'tournament'
   smallBlind: number
   bigBlind: number
@@ -31,30 +31,30 @@ export interface PokerGameSettings {
   gameStatus: 'active' | 'paused' | 'finished'
 }
 
-export interface PokerGroup {
+export interface StrategyGroup {
   id: string
   name: string
   description: string
   ownerId: string
   inviteCode: string
-  pokerSettings: PokerGameSettings
+  strategySettings: StrategyGameSettings
   createdAt: string
   updatedAt: string
 }
 
-export interface PokerServiceResponse {
+export interface StrategyServiceResponse {
   success: boolean
   data?: any
   error?: string
 }
 
-class PokerService {
+class StrategyService {
   private supabase = createClient()
 
   /**
    * 创建游戏群组
    */
-  async createPokerGroup(
+  async createStrategyGroup(
     ownerId: string,
     formData: {
       tableName: string
@@ -72,12 +72,12 @@ class PokerService {
       fullName?: string
       creditScore?: number
     }>
-  ): Promise<PokerServiceResponse> {
+  ): Promise<StrategyServiceResponse> {
     try {
       // 1. 创建群组基础数据
       const groupData: CreateGroupData = {
         name: `🎯 ${formData.tableName}`,
-        description: `积分游戏 ${formData.gameType === 'points' ? '积分模式' : '锦标赛'} - ${formData.smallBlind}/${formData.bigBlind} 盲注`,
+        description: `策略训练 ${formData.gameType === 'points' ? '积分模式' : '锦标赛'} - ${formData.smallBlind}/${formData.bigBlind} 盲注`,
         type: 'custom',
         maxMembers: formData.maxPlayers,
         initialPoints: formData.initialChips,
@@ -105,7 +105,7 @@ class PokerService {
       const group = groupResult.data as any
 
       // 2. 保存Poker专用设置到 groups 表的 metadata 字段
-      const pokerSettings: PokerGameSettings = {
+      const strategySettings: StrategyGameSettings = {
         gameType: formData.gameType,
         smallBlind: formData.smallBlind,
         bigBlind: formData.bigBlind,
@@ -122,7 +122,7 @@ class PokerService {
       }
 
       // 更新群组元数据
-      await this.updatePokerSettings(group.id, pokerSettings)
+      await this.updateStrategySettings(group.id, strategySettings)
 
       // 3. 为每个玩家创建初始积分交易记录
       for (const player of players) {
@@ -136,7 +136,7 @@ class PokerService {
             to_user_id: player.isCreator ? ownerId : (player.userId || player.id),
             group_id: group.id,
             amount: formData.initialChips,
-            description: `积分游戏初始积分 - 玩家: ${player.name}`,
+            description: `策略训练初始积分 - 玩家: ${player.name}`,
             type: 'system',
             status: 'completed',
             completed_at: new Date().toISOString(),
@@ -153,7 +153,7 @@ class PokerService {
         success: true,
         data: {
           ...group,
-          pokerSettings
+          strategySettings
         }
       }
     } catch (error) {
@@ -168,7 +168,7 @@ class PokerService {
   /**
    * 获取Poker群组详情
    */
-  async getPokerGroup(groupId: string): Promise<PokerServiceResponse> {
+  async getStrategyGroup(groupId: string): Promise<StrategyServiceResponse> {
     try {
       // 获取群组基础信息
       const groupResult = await groupService.getGroupById(groupId)
@@ -190,13 +190,13 @@ class PokerService {
         return { success: false, error: error.message }
       }
 
-      const pokerSettings = groupData?.metadata?.pokerSettings
+      const strategySettings = groupData?.metadata?.strategySettings
 
       return {
         success: true,
         data: {
           ...group,
-          pokerSettings
+          strategySettings
         }
       }
     } catch (error) {
@@ -210,13 +210,13 @@ class PokerService {
   /**
    * 更新Poker游戏设置
    */
-  async updatePokerSettings(groupId: string, settings: PokerGameSettings): Promise<PokerServiceResponse> {
+  async updateStrategySettings(groupId: string, settings: StrategyGameSettings): Promise<StrategyServiceResponse> {
     try {
       const { error } = await this.supabase
         .from('groups')
         .update({
           metadata: {
-            pokerSettings: settings
+            strategySettings: settings
           }
         })
         .eq('id', groupId)
@@ -244,7 +244,7 @@ class PokerService {
     amount: number,
     description: string,
     transferType: 'win' | 'loan' = 'loan'
-  ): Promise<PokerServiceResponse> {
+  ): Promise<StrategyServiceResponse> {
     try {
       // 验证输入参数
       if (!fromUserId || !toUserId || !groupId) {
@@ -299,7 +299,7 @@ class PokerService {
   /**
    * 获取群组的所有Poker交易记录
    */
-  async getPokerTransactions(groupId: string): Promise<PokerServiceResponse> {
+  async getStrategyTransactions(groupId: string): Promise<StrategyServiceResponse> {
     try {
       // 直接查询该群组的所有交易，而不使用 transactionService 避免用户ID问题
       const { data, error } = await this.supabase
@@ -353,9 +353,9 @@ class PokerService {
       userId?: string
     }>,
     currentUserId: string
-  ): Promise<PokerServiceResponse> {
+  ): Promise<StrategyServiceResponse> {
     try {
-      const transactionsResult = await this.getPokerTransactions(groupId)
+      const transactionsResult = await this.getStrategyTransactions(groupId)
       
       if (!transactionsResult.success) {
         return transactionsResult
@@ -364,7 +364,7 @@ class PokerService {
       const transactions = transactionsResult.data as Transaction[]
       const systemUuid = '00000000-0000-0000-0000-000000000000'
 
-      const playersData: PokerPlayer[] = playerNames.map(player => {
+      const playersData: StrategyPlayer[] = playerNames.map(player => {
         const playerId = player.isCreator ? currentUserId : (player.userId || player.id)
         
         // 计算该玩家的所有交易
@@ -419,7 +419,7 @@ class PokerService {
           totalBought,
           totalWon,
           totalLost,
-          netResult: winIncome - winExpense // 净损益 = 赢得的积分 - 输掉的积分（只计算win类型）
+          netResult: winIncome - winExpense // 净损益 = 获得的积分 - 失去的积分（只计算win类型）
         }
       })
 
@@ -438,25 +438,25 @@ class PokerService {
   /**
    * 结束Poker游戏
    */
-  async finishPokerGame(groupId: string): Promise<PokerServiceResponse> {
+  async finishStrategyGame(groupId: string): Promise<StrategyServiceResponse> {
     try {
       // 获取当前设置
-      const groupResult = await this.getPokerGroup(groupId)
+      const groupResult = await this.getStrategyGroup(groupId)
       if (!groupResult.success) {
         return groupResult
       }
 
       const group = groupResult.data
-      const pokerSettings = group.pokerSettings
+      const strategySettings = group.strategySettings
 
-      if (pokerSettings) {
+      if (strategySettings) {
         // 更新游戏状态
         const updatedSettings = {
-          ...pokerSettings,
+          ...strategySettings,
           gameStatus: 'finished' as const
         }
 
-        await this.updatePokerSettings(groupId, updatedSettings)
+        await this.updateStrategySettings(groupId, updatedSettings)
       }
 
       // 更新群组状态为已归档
@@ -477,7 +477,7 @@ class PokerService {
   /**
    * 获取预设Poker玩家列表
    */
-  async getPresetPlayers(): Promise<PokerServiceResponse> {
+  async getPresetPlayers(): Promise<StrategyServiceResponse> {
     try {
       const { data, error } = await this.supabase
         .from('users')
@@ -514,9 +514,9 @@ class PokerService {
   /**
    * 获取Poker游戏统计数据
    */
-  async getPokerStats(groupId: string): Promise<PokerServiceResponse> {
+  async getStrategyStats(groupId: string): Promise<StrategyServiceResponse> {
     try {
-      const transactionsResult = await this.getPokerTransactions(groupId)
+      const transactionsResult = await this.getStrategyTransactions(groupId)
       
       if (!transactionsResult.success) {
         return transactionsResult
@@ -549,4 +549,4 @@ class PokerService {
   }
 }
 
-export const pokerService = new PokerService()
+export const strategyService = new StrategyService()

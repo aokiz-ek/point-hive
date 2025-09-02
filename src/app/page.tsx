@@ -56,7 +56,7 @@ export default function HomePage() {
               <div className="ak-flex ak-items-center ak-justify-between ak-p-3 ak-bg-blue-500/10 ak-border ak-border-blue-500/20 ak-rounded-lg">
                 <div className="ak-flex ak-items-center ak-space-x-3">
                   <Gamepad2 className="ak-w-5 ak-h-5 ak-text-blue-400" />
-                  <span className="ak-text-sm ak-text-gray-300">游戏场次</span>
+                  <span className="ak-text-sm ak-text-gray-300">训练场次</span>
                 </div>
                 <span className="ak-text-lg ak-font-bold ak-text-blue-400">{stats.totalGames}</span>
               </div>
@@ -82,7 +82,7 @@ export default function HomePage() {
           {/* 快速操作区域 */}
           <div className="ak-mt-auto ak-p-6 ak-border-t ak-border-gray-700/30">
             <Button 
-              onClick={() => router.push('/groups/poker/create')}
+              onClick={() => router.push('/groups/strategy/create')}
               className="ak-w-full ak-bg-gradient-to-r ak-from-amber-500 ak-to-amber-600 ak-hover:ak-from-amber-600 ak-hover:ak-to-amber-700 ak-text-gray-900 ak-font-semibold ak-py-3 ak-rounded-lg ak-shadow-lg ak-shadow-amber-500/25"
             >
               <Plus className="ak-w-4 ak-h-4 ak-mr-2" />
@@ -103,7 +103,7 @@ export default function HomePage() {
                 <div className="ak-absolute ak-inset-0 ak-bg-amber-400 ak-opacity-10 ak-blur-2xl ak-rounded-full ak-scale-150"></div>
               </div>
               <p className="ak-text-lg ak-text-amber-200 ak-font-medium">专业的积分管理平台</p>
-              <p className="ak-text-sm ak-text-amber-600/80">轻松管理游戏，精确记录积分流动</p>
+              <p className="ak-text-sm ak-text-amber-600/80">轻松管理训练，精确记录积分流动</p>
             </div>
 
             {/* PC端主内容布局 */}
@@ -123,7 +123,7 @@ export default function HomePage() {
                           </div>
                           <div className="ak-text-left lg:ak-block ak-hidden">
                             <h2 className="ak-text-2xl lg:ak-text-3xl ak-font-bold ak-bg-gradient-to-r ak-from-amber-300 ak-to-amber-500 ak-bg-clip-text ak-text-transparent">
-                              创建游戏房间
+                              创建训练房间
                             </h2>
                             <p className="ak-text-amber-200/80 ak-mt-1">快速开始你的积分管理</p>
                           </div>
@@ -131,7 +131,7 @@ export default function HomePage() {
                         
                         <div className="lg:ak-hidden ak-text-center">
                           <h2 className="ak-text-2xl ak-font-bold ak-bg-gradient-to-r ak-from-amber-300 ak-to-amber-500 ak-bg-clip-text ak-text-transparent ak-mb-2">
-                            创建游戏房间
+                            创建训练房间
                           </h2>
                           <p className="ak-text-amber-200/80">快速开始你的积分管理</p>
                         </div>
@@ -148,7 +148,7 @@ export default function HomePage() {
                         </div>
 
                         <Button 
-                          onClick={() => router.push('/groups/poker/create')}
+                          onClick={() => router.push('/groups/strategy/create')}
                           className="ak-w-full ak-bg-gradient-to-r ak-from-amber-500 ak-to-amber-600 ak-hover:ak-from-amber-600 ak-hover:ak-to-amber-700 ak-text-gray-900 ak-py-4 ak-text-lg ak-font-bold ak-rounded-xl ak-shadow-xl ak-shadow-amber-500/40 ak-hover:ak-shadow-amber-500/60 ak-border ak-border-amber-400 ak-transition-all ak-duration-300 ak-group/btn ak-flex ak-items-center ak-justify-center ak-space-x-3"
                           size="lg"
                         >
@@ -173,7 +173,7 @@ export default function HomePage() {
                       <div className="ak-space-y-3 ak-text-sm ak-text-purple-200/80">
                         <div className="ak-flex ak-items-center ak-space-x-2">
                           <div className="ak-w-6 ak-h-6 ak-bg-gradient-to-br ak-from-purple-500 ak-to-purple-600 ak-rounded-full ak-flex ak-items-center ak-justify-center ak-text-xs ak-font-bold ak-text-white ak-shadow-lg">1</div>
-                          <span>设置游戏参数</span>
+                          <span>设置训练参数</span>
                         </div>
                         <div className="ak-flex ak-items-center ak-space-x-2">
                           <div className="ak-w-6 ak-h-6 ak-bg-gradient-to-br ak-from-purple-500 ak-to-purple-600 ak-rounded-full ak-flex ak-items-center ak-justify-center ak-text-xs ak-font-bold ak-text-white ak-shadow-lg">2</div>
@@ -181,7 +181,7 @@ export default function HomePage() {
                         </div>
                         <div className="ak-flex ak-items-center ak-space-x-2">
                           <div className="ak-w-6 ak-h-6 ak-bg-gradient-to-br ak-from-purple-500 ak-to-purple-600 ak-rounded-full ak-flex ak-items-center ak-justify-center ak-text-xs ak-font-bold ak-text-white ak-shadow-lg">3</div>
-                          <span>开始游戏</span>
+                          <span>开始训练</span>
                         </div>
                       </div>
                     </Card>
@@ -193,8 +193,8 @@ export default function HomePage() {
                         今日亮点
                       </h3>
                       <div className="ak-text-sm ak-text-amber-200/80">
-                        <p>已有 <span className="ak-font-semibold ak-text-amber-300">{stats.activeGames}</span> 场游戏正在进行中</p>
-                        <p className="ak-mt-2">平均每场游戏 <span className="ak-font-semibold ak-text-amber-300">{Math.round(stats.totalChips / stats.totalGames).toLocaleString()}</span> 积分</p>
+                        <p>已有 <span className="ak-font-semibold ak-text-amber-300">{stats.activeGames}</span> 场训练正在进行中</p>
+                        <p className="ak-mt-2">平均每场训练 <span className="ak-font-semibold ak-text-amber-300">{Math.round(stats.totalChips / stats.totalGames).toLocaleString()}</span> 积分</p>
                       </div>
                     </Card>
                   </div>
@@ -211,7 +211,7 @@ export default function HomePage() {
                 <Card className="ak-bg-gradient-to-br ak-from-gray-800 ak-to-gray-700 ak-border ak-border-blue-500/30 ak-p-4 ak-text-center">
                   <Gamepad2 className="ak-w-6 ak-h-6 ak-text-blue-400 ak-mx-auto ak-mb-2" />
                   <div className="ak-text-xl ak-font-bold ak-text-blue-400">{stats.totalGames}</div>
-                  <div className="ak-text-xs ak-text-blue-300/80">游戏场次</div>
+                  <div className="ak-text-xs ak-text-blue-300/80">训练场次</div>
                 </Card>
               </div>
 
@@ -227,7 +227,7 @@ export default function HomePage() {
                         <Gamepad2 className="ak-w-7 ak-h-7 ak-text-white" />
                       </div>
                       <h3 className="ak-text-lg ak-font-bold ak-bg-gradient-to-r ak-from-blue-300 ak-to-blue-400 ak-bg-clip-text ak-text-transparent ak-mb-3">简单易用</h3>
-                      <p className="ak-text-blue-200/70 ak-text-sm ak-leading-relaxed">直观的界面设计，无需复杂操作即可快速创建和管理游戏房间</p>
+                      <p className="ak-text-blue-200/70 ak-text-sm ak-leading-relaxed">直观的界面设计，无需复杂操作即可快速创建和管理训练房间</p>
                     </div>
                   </Card>
 
@@ -238,7 +238,7 @@ export default function HomePage() {
                         <Trophy className="ak-w-7 ak-h-7 ak-text-gray-900" />
                       </div>
                       <h3 className="ak-text-lg ak-font-bold ak-bg-gradient-to-r ak-from-amber-300 ak-to-amber-400 ak-bg-clip-text ak-text-transparent ak-mb-3">精确记录</h3>
-                      <p className="ak-text-amber-200/70 ak-text-sm ak-leading-relaxed">实时记录每次积分转移，自动计算玩家净收益和游戏统计</p>
+                      <p className="ak-text-amber-200/70 ak-text-sm ak-leading-relaxed">实时记录每次积分转移，自动计算玩家净收益和训练统计</p>
                     </div>
                   </Card>
 
@@ -249,7 +249,7 @@ export default function HomePage() {
                         <Users className="ak-w-7 ak-h-7 ak-text-white" />
                       </div>
                       <h3 className="ak-text-lg ak-font-bold ak-bg-gradient-to-r ak-from-purple-300 ak-to-purple-400 ak-bg-clip-text ak-text-transparent ak-mb-3">多人协作</h3>
-                      <p className="ak-text-purple-200/70 ak-text-sm ak-leading-relaxed">支持2-10人同时游戏，提供完整的游戏历史和结算报告</p>
+                      <p className="ak-text-purple-200/70 ak-text-sm ak-leading-relaxed">支持2-10人同时训练，提供完整的训练历史和结算报告</p>
                     </div>
                   </Card>
                 </div>

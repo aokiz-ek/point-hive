@@ -2,10 +2,10 @@
 export { authService } from './auth-service'
 export { groupService } from './group-service'
 export { transactionService } from './transaction-service'
-export { pokerService } from './poker-service'
+export { strategyService } from './strategy-service'
 
 // 导出类型
 export type { AuthUser, SignInCredentials, SignUpCredentials, AuthResponse } from './auth-service'
 export type { GroupServiceResponse } from './group-service'
 export type { TransactionServiceResponse } from './transaction-service'
-export type { PokerServiceResponse, PokerPlayer, PokerGameSettings, PokerGroup } from './poker-service'
+export type { StrategyServiceResponse, StrategyPlayer, StrategyGameSettings, StrategyGroup } from './strategy-service'

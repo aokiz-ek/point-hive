@@ -48,15 +48,15 @@ export interface TransactionMetadata {
   batchId?: string; // 批量操作ID
   tags?: string[];
   priority?: 'low' | 'normal' | 'high' | 'urgent';
-  transferType?: 'win' | 'buy_in' | 'cash_out' | 'loan'; // 用于Poker游戏：赢得积分、银行买入、兑现离场、临时借贷
+  transferType?: 'win' | 'buy_in' | 'cash_out' | 'loan'; // 用于策略训练：获得积分、银行买入、兑现离场、临时借贷
   isPartialReturn?: boolean; // 用于退还交易：是否为部分退还
   originalAmount?: number; // 用于退还交易：原始交易金额
   type?: string; // 用于结算交易：结算类型
   settlementId?: string; // 用于结算交易：结算ID
   originalTransactions?: number; // 用于结算交易：原始交易数量
   rejectionReason?: string; // 用于交易被拒绝时的原因
-  playerName?: string; // 用于Poker游戏：玩家名称
-  isCreator?: boolean; // 用于Poker游戏：是否为创建者
+  playerName?: string; // 用于策略训练：玩家名称
+  isCreator?: boolean; // 用于策略训练：是否为创建者
 }
 
 export interface PendingRequest {
